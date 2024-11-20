@@ -15,13 +15,13 @@ chatai
 │   │       ├── ChatArea.js
 │   │       └── Sidebar.js
 │   ├── package.json
-│   └── .env      # REACT_APP_API_URL
+│   └── .env      # REACT_APP_API_URL=http://localhost:8000
 ├── backend
 │   ├── app
 │   │   └── main.py
 │   ├── venv
 │   ├── requirements.txt
-│   └── .env      # openai api key
+│   └── .env      # OPENAI_API_KEY=sk-proj-1234567890
 ├── src
 |    └── App.js   # main application component
 └── project.md
@@ -34,6 +34,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install --upgrade pip
 uvicorn app.main:app --reload
 CTRL+C to stop
 deactivate
