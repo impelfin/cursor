@@ -1,0 +1,119 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+  background-color: #343541;
+  color: white;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #202123;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.new-chat-btn {
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #343541;
+  border: 1px solid #565869;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-item {
+  padding: 10px;
+  margin: 5px 0;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.chat-item:hover {
+  background-color: #2a2b32;
+}
+
+.chat-item.active {
+  background-color: #343541;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.message-input {
+  display: flex;
+  gap: 10px;
+}
+
+.message-input input {
+  flex: 1;
+  padding: 12px;
+  background-color: #40414f;
+  border: 1px solid #565869;
+  border-radius: 5px;
+  color: white;
+}
+
+.message-input button {
+  padding: 0 20px;
+  background-color: #40414f;
+  border: 1px solid #565869;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
