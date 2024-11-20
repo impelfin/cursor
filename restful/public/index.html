@@ -1,37 +1,176 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Restful API Example</title>
-</head>
-<body>
-<h1>Restful API Example</h1>
-------------------------------------------------------------------<br>
-<h4>Get APIs</h4>
-------------------------------------------------------------------<br>
-<form method='post' action='/api/users/userBody' name='userForm' target=targetURL>
-      <input type='button' value='GET /Hello' onclick='document.targetURL.location.href="/Hello"'>
-      <p>
-      <input type='button' value='GET /api/users' onclick='document.targetURL.location.href="/api/users"'>
-      <p>
-      id <input type='text' size='10' name='id'>
-      <input type='button' value='GET /api/users/user?params' onclick='document.targetURL.location.href="/api/users/user?user_id="+document.userForm.id.value'>
-      &nbsp;
-      <input type='button' value='GET /api/users/:user_id' onclick='document.targetURL.location.href="/api/users/"+document.userForm.id.value'>
-      <p>
-      name <input type='text' size='10' name='name'>
-      <input type='button' value='get user_id & name' onclick='document.targetURL.location.href="/api/users/user?user_id="+document.userForm.id.value+"&name="+document.userForm.name.value'>
-      <br>
-------------------------------------------------------------------<br>
-<h4>POST APIs</h4>
-------------------------------------------------------------------<br>
-      <button type='submit' name='userBody' formaction='/api/users/userBody'>POST => /api/users/userBody</button>
-      <p>
-      <button type='submit' name='add'  formaction='/api/users/add'>POST => /api/users/add</button>
-      <br>
-</form>
-------------------------------------------------------------------<br>
-<iframe name=targetURL class="iframe-preview center" width="90%" height="500" style="border:none;" src="http://localhost:3000/api/users">
-</iframe>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restful API Example</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .card {
+        margin-bottom: 20px;
+      }
+      .api-section {
+        padding: 20px;
+      }
+
+      /* POST 버튼 호버 스타일 */
+      .btn-success:hover {
+        background-color: #157347 !important;
+        border-color: #157347 !important;
+        box-shadow: 0 0 0 0.25rem rgba(21, 115, 71, 0.25);
+      }
+
+      /* iframe 스타일 수정 */
+      iframe {
+        background-color: white !important;
+        padding: 15px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center mb-4">Restful API Example</h1>
+
+      <form
+        method="post"
+        action="/api/users/userBody"
+        name="userForm"
+        target="targetURL"
+      >
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Get APIs</h4>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <input
+                type="button"
+                class="btn btn-outline-primary"
+                value="GET /Hello"
+                onclick='document.targetURL.location.href="/Hello"'
+              />
+              <input
+                type="button"
+                class="btn btn-outline-primary"
+                value="GET /api/users"
+                onclick='document.targetURL.location.href="/api/users"'
+              />
+            </div>
+
+            <div class="mb-3">
+              <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                  <label class="col-form-label">ID:</label>
+                </div>
+                <div class="col-auto">
+                  <input type="text" class="form-control" size="10" name="id" />
+                </div>
+                <div class="col-auto">
+                  <input
+                    type="button"
+                    class="btn btn-outline-primary"
+                    value="GET /api/users/user?params"
+                    onclick='document.targetURL.location.href="/api/users/user?user_id="+document.userForm.id.value'
+                  />
+                  <input
+                    type="button"
+                    class="btn btn-outline-primary"
+                    value="GET /api/users/:user_id"
+                    onclick='document.targetURL.location.href="/api/users/"+document.userForm.id.value'
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                  <label class="col-form-label">Name:</label>
+                </div>
+                <div class="col-auto">
+                  <input
+                    type="text"
+                    class="form-control"
+                    size="10"
+                    name="name"
+                  />
+                </div>
+                <div class="col-auto">
+                  <input
+                    type="button"
+                    class="btn btn-outline-primary"
+                    value="get user_id & name"
+                    onclick='document.targetURL.location.href="/api/users/user?user_id="+document.userForm.id.value+"&name="+document.userForm.name.value'
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h4 class="mb-0">POST APIs</h4>
+          </div>
+          <div class="card-body">
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                name="userBody"
+                formaction="/api/users/userBody"
+                class="btn btn-outline-success"
+              >
+                POST => /api/users/userBody
+              </button>
+              <button
+                type="submit"
+                name="add"
+                formaction="/api/users/add"
+                class="btn btn-outline-success"
+              >
+                POST => /api/users/add
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="card-body p-0">
+          <iframe
+            name="targetURL"
+            class="w-100"
+            height="500"
+            style="border: none"
+            src="http://localhost:3000/api/users"
+            onload="this.contentDocument.body.style.backgroundColor='white'"
+          >
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // iframe이 로드될 때마다 배경색을 흰색으로 설정
+      document.getElementsByName("targetURL")[0].onload = function () {
+        try {
+          this.contentDocument.body.style.backgroundColor = "white";
+          this.contentDocument.body.style.color = "black";
+          this.contentDocument.body.style.padding = "15px";
+        } catch (e) {
+          console.log("iframe style application failed:", e);
+        }
+      };
+    </script>
+  </body>
 </html>
