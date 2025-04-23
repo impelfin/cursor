@@ -1,0 +1,672 @@
+[{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06664f"
+  },
+  "year": 2005,
+  "amount_per_person": 149160
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066650"
+  },
+  "year": 2006,
+  "amount_per_person": 186124
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066651"
+  },
+  "year": 2007,
+  "amount_per_person": 196079
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066652"
+  },
+  "year": 2008,
+  "amount_per_person": 212029
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066653"
+  },
+  "year": 2009,
+  "amount_per_person": 236872
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066654"
+  },
+  "year": 2010,
+  "amount_per_person": 322066
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066655"
+  },
+  "year": 2011,
+  "amount_per_person": 350580
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066656"
+  },
+  "year": 2012,
+  "amount_per_person": 368724
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066657"
+  },
+  "year": 2013,
+  "amount_per_person": 383235
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066658"
+  },
+  "year": 2014,
+  "amount_per_person": 396365
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066659"
+  },
+  "year": 2015,
+  "amount_per_person": 408625
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665a"
+  },
+  "year": 2016,
+  "amount_per_person": 421789
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665b"
+  },
+  "year": 2017,
+  "amount_per_person": 430638
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665c"
+  },
+  "year": 2018,
+  "amount_per_person": 439799
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665d"
+  },
+  "year": 2019,
+  "amount_per_person": 448654
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665e"
+  },
+  "year": 2020,
+  "amount_per_person": 457836
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06665f"
+  },
+  "year": 2021,
+  "amount_per_person": 465008
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066660"
+  },
+  "year": 2022,
+  "amount_per_person": 472700
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066661"
+  },
+  "year": 2023,
+  "amount_per_person": 479798
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066662"
+  },
+  "year": 2024,
+  "amount_per_person": 486873
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066663"
+  },
+  "year": 2025,
+  "amount_per_person": 493408
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066664"
+  },
+  "year": 2026,
+  "amount_per_person": 512906
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066665"
+  },
+  "year": 2027,
+  "amount_per_person": 538488
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066666"
+  },
+  "year": 2028,
+  "amount_per_person": 555931
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066667"
+  },
+  "year": 2029,
+  "amount_per_person": 558778
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066668"
+  },
+  "year": 2030,
+  "amount_per_person": 574844
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066669"
+  },
+  "year": 2031,
+  "amount_per_person": 590160
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666a"
+  },
+  "year": 2032,
+  "amount_per_person": 608440
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666b"
+  },
+  "year": 2033,
+  "amount_per_person": 613678
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666c"
+  },
+  "year": 2034,
+  "amount_per_person": 628171
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666d"
+  },
+  "year": 2035,
+  "amount_per_person": 637570
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666e"
+  },
+  "year": 2036,
+  "amount_per_person": 656582
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06666f"
+  },
+  "year": 2037,
+  "amount_per_person": 663145
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066670"
+  },
+  "year": 2038,
+  "amount_per_person": 680106
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066671"
+  },
+  "year": 2039,
+  "amount_per_person": 685834
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066672"
+  },
+  "year": 2040,
+  "amount_per_person": 694810
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066673"
+  },
+  "year": 2041,
+  "amount_per_person": 711189
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066674"
+  },
+  "year": 2042,
+  "amount_per_person": 723391
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066675"
+  },
+  "year": 2043,
+  "amount_per_person": 729425
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066676"
+  },
+  "year": 2044,
+  "amount_per_person": 740354
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066677"
+  },
+  "year": 2045,
+  "amount_per_person": 751955
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066678"
+  },
+  "year": 2046,
+  "amount_per_person": 758904
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066679"
+  },
+  "year": 2047,
+  "amount_per_person": 774690
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667a"
+  },
+  "year": 2048,
+  "amount_per_person": 786255
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667b"
+  },
+  "year": 2049,
+  "amount_per_person": 797260
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667c"
+  },
+  "year": 2050,
+  "amount_per_person": 808689
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667d"
+  },
+  "year": 2051,
+  "amount_per_person": 809912
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667e"
+  },
+  "year": 2052,
+  "amount_per_person": 825281
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06667f"
+  },
+  "year": 2053,
+  "amount_per_person": 835252
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066680"
+  },
+  "year": 2054,
+  "amount_per_person": 844112
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066681"
+  },
+  "year": 2055,
+  "amount_per_person": 852295
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066682"
+  },
+  "year": 2056,
+  "amount_per_person": 863328
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066683"
+  },
+  "year": 2057,
+  "amount_per_person": 874698
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066684"
+  },
+  "year": 2058,
+  "amount_per_person": 884535
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066685"
+  },
+  "year": 2059,
+  "amount_per_person": 888273
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066686"
+  },
+  "year": 2060,
+  "amount_per_person": 899058
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066687"
+  },
+  "year": 2061,
+  "amount_per_person": 905167
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066688"
+  },
+  "year": 2062,
+  "amount_per_person": 920151
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066689"
+  },
+  "year": 2063,
+  "amount_per_person": 923643
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668a"
+  },
+  "year": 2064,
+  "amount_per_person": 935337
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668b"
+  },
+  "year": 2065,
+  "amount_per_person": 948034
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668c"
+  },
+  "year": 2066,
+  "amount_per_person": 955217
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668d"
+  },
+  "year": 2067,
+  "amount_per_person": 966433
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668e"
+  },
+  "year": 2068,
+  "amount_per_person": 970449
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06668f"
+  },
+  "year": 2069,
+  "amount_per_person": 981654
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066690"
+  },
+  "year": 2070,
+  "amount_per_person": 992425
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066691"
+  },
+  "year": 2071,
+  "amount_per_person": 1000435
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066692"
+  },
+  "year": 2072,
+  "amount_per_person": 1009286
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066693"
+  },
+  "year": 2073,
+  "amount_per_person": 1014584
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066694"
+  },
+  "year": 2074,
+  "amount_per_person": 1027305
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066695"
+  },
+  "year": 2075,
+  "amount_per_person": 1033282
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066696"
+  },
+  "year": 2076,
+  "amount_per_person": 1042860
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066697"
+  },
+  "year": 2077,
+  "amount_per_person": 1050420
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066698"
+  },
+  "year": 2078,
+  "amount_per_person": 1059213
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a066699"
+  },
+  "year": 2079,
+  "amount_per_person": 1067475
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669a"
+  },
+  "year": 2080,
+  "amount_per_person": 1075212
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669b"
+  },
+  "year": 2081,
+  "amount_per_person": 1084384
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669c"
+  },
+  "year": 2082,
+  "amount_per_person": 1092438
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669d"
+  },
+  "year": 2083,
+  "amount_per_person": 1101464
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669e"
+  },
+  "year": 2084,
+  "amount_per_person": 1110024
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a06669f"
+  },
+  "year": 2085,
+  "amount_per_person": 1119957
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a0"
+  },
+  "year": 2086,
+  "amount_per_person": 1125933
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a1"
+  },
+  "year": 2087,
+  "amount_per_person": 1135724
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a2"
+  },
+  "year": 2088,
+  "amount_per_person": 1143317
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a3"
+  },
+  "year": 2089,
+  "amount_per_person": 1152299
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a4"
+  },
+  "year": 2090,
+  "amount_per_person": 1159393
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a5"
+  },
+  "year": 2091,
+  "amount_per_person": 1168077
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a6"
+  },
+  "year": 2092,
+  "amount_per_person": 1175884
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a7"
+  },
+  "year": 2093,
+  "amount_per_person": 1184028
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a8"
+  },
+  "year": 2094,
+  "amount_per_person": 1192367
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666a9"
+  },
+  "year": 2095,
+  "amount_per_person": 1200280
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666aa"
+  },
+  "year": 2096,
+  "amount_per_person": 1208999
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666ab"
+  },
+  "year": 2097,
+  "amount_per_person": 1216847
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666ac"
+  },
+  "year": 2098,
+  "amount_per_person": 1224872
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666ad"
+  },
+  "year": 2099,
+  "amount_per_person": 1232862
+},
+{
+  "_id": {
+    "$oid": "680726ab8fe29aff2a0666ae"
+  },
+  "year": 2100,
+  "amount_per_person": 1240800
+}]

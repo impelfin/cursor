@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <style>
+        #chartdiv {
+        width: 100%;
+        height: 500px;
+        }
+    </style>
+    
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+            
+    <script type="text/javascript">
+        var todayInfo = null;
+            
+        <!-- Chart code -->
+        am4core.ready(function() {
+        
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+        
+        var chart = am4core.create("chartdiv", am4charts.PieChart3D);
+        chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+        
+        var qq = getPersonCnt("cateArr");
+        var ee = getPersonCnt("data");
+        
+        var dataList = [];
+        
+        for (var i = 0, j= 0; i < qq.length, j < ee.length; i++,j++) {
+            var data = {};
+            data.country = qq[i];
+            data.litres = ee[j];
+            dataList.push(data);
+        }
+        
+        var reqData = {};
+        reqData.dataList = dataList;
+        
+        var sendData = {};
+        sendData.reqData = reqData;
+        
+        chart.data = reqData.dataList
+        chart.innerRadius = am4core.percent(40);
+        chart.depth = 120;
+        chart.legend = new am4charts.Legend();
+        
+        var series = chart.series.push(new am4charts.PieSeries3D());
+        series.dataFields.value = "litres";
+        series.dataFields.depthValue = "litres";
+        series.dataFields.category = "country";
+        series.slices.template.cornerRadius = 5;
+        series.colors.step = 3;
+        
+        }); // end am4core.ready()
+            
+        function getPersonCnt(type){
+            if(todayInfo==null) todayInfo=${chartJSON};
+            var todayInfoMap = resultProcLineChart(todayInfo);
+            if(todayInfoMap==null) return null;
+            if(type=="data"){
+                return todayInfoMap.get("data");
+            }else{
+                return todayInfoMap.get("cateArr");
+            }
+        }
+            
+        function resultProcLineChart($obj){
+            if($obj==null) return null;        
+            var resMap = new JqMap();
+            
+            var cateArr = new Array();
+            var dataArr = new Array();
+                    
+            for(var k in $obj){
+                var xobj =$obj[k];
+                
+                cateArr.push(xobj.d);    
+                dataArr.push(xobj.y);             
+            }
+            
+            resMap.put("cateArr",cateArr);
+            resMap.put("data",dataArr);
+            
+            return resMap;
+        }    
+        </script>
+    </head>
+    <body>
+    <div id="chartdiv"></div>
+    </body>
+</html>
