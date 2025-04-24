@@ -1,4 +1,4 @@
-# chartJs-mvc
+# PRD : chartJs-mvc
 
 ## 프로젝트 목표
 - models 폴더 아래 json 파일을 chart.js 막대그래프로 시각화
