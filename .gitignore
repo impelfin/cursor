@@ -1,7 +1,13 @@
 # python
 **/__pycache__
 **/venv
-
+**/secret.json
+**/model.safetensors
+**/llama.cpp
+**/*.gguf
+**/training_data
+**/sft.json
+**/*-finetuned-sft
 
 # node  
 **/node_modules
