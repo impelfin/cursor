@@ -10,6 +10,7 @@
 **/training_data
 **/sft.json
 **/*-finetuned-sft
+**/finetuned-*
 
 # node  
 **/node_modules
