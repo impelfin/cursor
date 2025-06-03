@@ -7,25 +7,10 @@ from peft import LoraConfig, get_peft_model
 from trl import SFTTrainer, SFTConfig
 import subprocess # GGUF 변환을 위해 필요
 
-# --- 스크립트 실행 전 필수 확인 사항 ---
-# 1. Hugging Face 관련 라이브러리 최신 업데이트:
-#    pip install --upgrade huggingface_hub transformers peft trl accelerate datasets
-# 2. PyTorch 및 Torchvision 재설치 (특히 Mac M1/M2/M3에서):
-#    pip uninstall torch torchvision torchaudio -y
-#    # 다음 명령어는 PyTorch 공식 웹사이트에서 macOS - Pip - MPS 선택 후 제공되는 최신 명령어를 사용하세요.
-#    # 예시: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/torch_stable.html
-# 3. llama.cpp 저장소 클론 및 빌드:
-#    git clone https://github.com/ggerganov/llama.cpp.git
-#    cd llama.cpp
-#    make clean
-#    make -j CFLAGS="-O3" GGML_METAL_ENABLED=ON # 애플 실리콘용 Metal 가속 빌드
-#    pip install -r requirements.txt # llama.cpp의 Python 의존성 설치
-# ----------------------------------------
-
 # --- 1. 설정 변수 ---
-# 파인튜닝할 원본 기본 모델의 로컬 경로입니다.
-# 이 경로에 config.json, model.safetensors (또는 pytorch_model.bin), tokenizer.json 등 모든 파일이 있어야 합니다.
-base_model_id = "./llama3.2-1b" # <<< 당신의 환경에 맞게 이 경로를 확인하고 필요시 수정하세요.
+# 파인튜닝할 원본 기본 모델의 로컬 경로.
+# 이 경로에 config.json, model.safetensors (또는 pytorch_model.bin), tokenizer.json 등 모든 파일이 있어야 한다.
+base_model_id = "./llama3.2-1b" # <<< 실제 환경에 맞게 이 경로를 확인하고 필요시 수정.
 
 sft_json_path = "./sft.json" # 학습 데이터셋 JSON 파일 경로
 output_dir = "./llama3.2-1b-finetuned-sft" # 파인튜닝 결과 및 병합 모델 저장 경로
@@ -33,15 +18,15 @@ output_dir = "./llama3.2-1b-finetuned-sft" # 파인튜닝 결과 및 병합 모�
 gguf_output_name = "llama3.2-1b-finetuned-sft.gguf"
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 
-# llama.cpp 저장소의 루트 경로입니다.
-# convert_hf_to_gguf.py 스크립트가 이 경로 아래에 있어야 합니다.
-llama_cpp_path = "llama.cpp" # <<< 당신의 환경에 맞게 이 경로를 확인하고 필요시 수정하세요.
+# llama.cpp 저장소의 루트 경로.
+# convert_hf_to_gguf.py 스크립트가 이 경로 아래에 있어야 한다.
+llama_cpp_path = "llama.cpp" # <<< 실제 환경에 맞게 이 경로를 확인하고 필요시 수정.
 
 # --- 2. 모델 및 토크나이저 로드 ---
 print(f"모델 로드 중: {base_model_id}...")
 
-# torch_dtype을 float32로 설정하여 안정성을 높입니다.
-# device_map="auto"는 사용 가능한 디바이스(Mac의 경우 MPS)에 모델을 분배합니다.
+# torch_dtype을 float32로 설정하여 안정성을 높인다.
+# device_map="auto"는 사용 가능한 디바이스(Mac의 경우 MPS)에 모델을 분배한다.
 try:
     model = AutoModelForCausalLM.from_pretrained(
         base_model_id,
@@ -137,8 +122,8 @@ except Exception as e:
 
 
 # --- 8. 파인튜닝된 LoRA 어댑터와 토크나이저 저장 ---
-# SFTTrainer는 학습이 끝나면 자동으로 output_dir에 저장합니다.
-# 하지만 명시적으로 다시 저장하는 것은 안전합니다.
+# SFTTrainer는 학습이 끝나면 자동으로 output_dir에 저장한다.
+# 하지만 명시적으로 다시 저장하는 것은 안전하다.
 trainer.model.save_pretrained(output_dir)
 tokenizer.save_pretrained(output_dir)
 print(f"\n파인튜닝된 LoRA 어댑터와 토크나이저가 '{output_dir}'에 저장되었습니다.")
