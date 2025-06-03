@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # --- 설정 변수 ---
-MODEL_DIR="llama3.2-1b-finetuned-sft"
-GGUF_MODEL_NAME="llama3.2-1b-finetuned-sft.gguf"
+MODEL_DIR="finetuned-llama3.2-1b"
+GGUF_MODEL_NAME="llama3.2-1b-finetuned.gguf"
 GGUF_MODEL_PATH="./${MODEL_DIR}/${GGUF_MODEL_NAME}"
 
 # Ollama에 등록할 모델의 이름
-OLLAMA_MODEL_TAG="llama3.2-1b-finetuned-sft"
+OLLAMA_MODEL_TAG="llama3.2-1b-finetuned"
 
 # 데이터셋 파일의 경로 (참고용. Ollama 등록 시 직접 사용되지 않음)
 DATASET_PATH="./sft.json"
