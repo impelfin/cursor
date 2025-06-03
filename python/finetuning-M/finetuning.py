@@ -13,20 +13,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # --- 1. 설정 변수 ---
-# 파인튜닝할 원본 기본 모델의 로컬 경로입니다.
-# 위에 다운로드한 Llama 3.2-1B 모델의 경로로 설정해주세요.
-base_model_local_path = "./llama3.2-1b" # <<< 이 경로를 당신의 환경에 맞게 수정하세요.
+# 파인튜닝할 원본 기본 모델의 로컬 경로.
+# 위에 다운로드한 Llama 3.2-1B 모델의 경로로 설정.
+base_model_local_path = "./llama3.2-1b" # <<< 이 경로를 실제 환경에 맞게 수정.
 
 sft_json_path = "./sft.json" # 학습 데이터셋 JSON 파일 경로
-# 파인튜닝 결과 및 병합 모델이 저장될 디렉터리입니다.
+# 파인튜닝 결과 및 병합 모델이 저장될 디렉터리.
 output_dir = f"./finetuned-{os.path.basename(base_model_local_path).lower()}"
 os.makedirs(output_dir, exist_ok=True) # 출력 디렉터리 생성
 
 gguf_output_name = f"{os.path.basename(base_model_local_path).lower()}-finetuned.gguf"
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 
-# llama.cpp 저장소의 루트 경로입니다. convert_hf_to_gguf.py 스크립트가 이 경로 아래에 있어야 합니다.
-llama_cpp_path = "llama.cpp" # <<< 이 경로를 당신의 환경에 맞게 수정하세요.
+# llama.cpp 저장소의 루트 경로. convert_hf_to_gguf.py 스크립트가 이 경로 아래에 있어야 함.
+llama_cpp_path = "llama.cpp" # <<< 이 경로를 실제 환경에 맞게 수정.
 
 # --- 2. 모델 및 토크나이저 로드 ---
 logger.info(f"모델 로드 중: {base_model_local_path}...")
@@ -40,11 +40,11 @@ else:
     logger.warning("MPS (Apple Silicon GPU)를 사용할 수 없습니다. CPU를 사용합니다. 학습 속도가 매우 느릴 수 있습니다.")
 
 try:
-    # 4비트 양자화 (BitsAndBytesConfig) 없이 float16 정밀도로 모델을 로드합니다.
-    # 이는 bitsandbytes 설치 문제를 우회하고, MPS 가속을 계속 활용합니다.
+    # 4비트 양자화 (BitsAndBytesConfig) 없이 float16 정밀도로 모델을 로드.
+    # 이는 bitsandbytes 설치 문제를 우회하고, MPS 가속을 계속 활용.
     model = AutoModelForCausalLM.from_pretrained(
         base_model_local_path,
-        # quantization_config=bnb_config, # <<< 이 줄은 이제 사용하지 않습니다.
+        # quantization_config=bnb_config, # <<< 이 줄은 이제 사용하지 않는다.
         device_map="auto",              # 사용 가능한 디바이스(MPS)에 모델을 효율적으로 분배
         torch_dtype=torch.float16,      # 모델 파라미터를 float16으로 로드하여 메모리 절약
         low_cpu_mem_usage=True,         # CPU 메모리 절약 모드 활성화
@@ -92,7 +92,7 @@ except Exception as e:
     exit(1)
 
 # --- 4. LoRA 설정 ---
-# LoRA는 적은 수의 파라미터만 학습하여 메모리 사용량을 최소화하면서 파인튜닝을 가능하게 합니다.
+# LoRA는 적은 수의 파라미터만 학습하여 메모리 사용량을 최소화하면서 파인튜닝을 가능하게 한다.
 peft_config = LoraConfig(
     lora_alpha=16,          # LoRA 스케일링 팩터 (높을수록 학습 가중치가 원본 모델에 더 많이 적용)
     lora_dropout=0.1,       # LoRA 레이어에 적용할 드롭아웃 비율
@@ -122,7 +122,7 @@ sft_training_args = SFTConfig(
     logging_steps=10,                       # 10 스텝마다 로그 출력
     push_to_hub=False,                      # 학습 완료 후 Hugging Face Hub에 푸시 안 함
     report_to="none",                       # 학습 진행 상황 리포트 기능 사용 안 함
-    fp16=False,                              # 학습도 float16 정밀도로 진행하여 메모리 절약
+    fp16=False,                             # 학습도 float16 정밀도로 진행하여 메모리 절약
     bf16=False,                             # bfloat16은 대부분의 Mac에서 지원하지 않음
     max_grad_norm=0.3,                      # 그래디언트 클리핑 (그래디언트 폭발 방지)
     warmup_ratio=0.03,                      # 웜업 비율 (학습 초기 안정화에 도움)
@@ -139,7 +139,7 @@ trainer = SFTTrainer(
     train_dataset=dataset,
     peft_config=peft_config,
     args=sft_training_args,
-    # tokenizer=tokenizer, # 토크나이저를 명시적으로 전달합니다.
+    # tokenizer=tokenizer, # 토크나이저를 명시적으로 전달.
 )
 
 logger.info("\n--- 파인튜닝 시작 ---")
@@ -154,7 +154,7 @@ except Exception as e:
 
 
 # --- 8. 파인튜닝된 LoRA 어댑터와 토크나이저 저장 ---
-# SFTTrainer는 학습이 끝나면 자동으로 output_dir에 저장하지만, 명시적으로 다시 저장하는 것은 안전합니다.
+# SFTTrainer는 학습이 끝나면 자동으로 output_dir에 저장하지만, 명시적으로 다시 저장하는 것은 안전하다.
 trainer.model.save_pretrained(output_dir)
 tokenizer.save_pretrained(output_dir)
 logger.info(f"\n파인튜닝된 LoRA 어댑터와 토크나이저가 '{output_dir}'에 저장되었습니다.")
@@ -164,7 +164,7 @@ logger.info(f"\n파인튜닝된 LoRA 어댑터와 토크나이저가 '{output_di
 logger.info("\nLoRA 어댑터를 기본 모델에 병합 중 (GGUF 변환 준비)...")
 
 try:
-    # 병합할 때도 기본 모델을 로드할 때 `torch_dtype`을 `float16`으로 일치시킵니다.
+    # 병합할 때도 기본 모델을 로드할 때 `torch_dtype`을 `float16`으로 일치시킴.
     base_model_full = AutoModelForCausalLM.from_pretrained(
         base_model_local_path,
         return_dict=True,
@@ -200,8 +200,8 @@ if not os.path.exists(convert_py_path):
     exit(1)
 else:
     logger.info(f"\nGGUF 변환 시작: {gguf_output_path}...")
-    # GGUF 변환 시에도 메모리 절약을 위해 `--outtype F16`을 권장합니다.
-    # F32는 파일 크기가 매우 크고 추론 시 더 많은 메모리를 요구합니다.
+    # GGUF 변환 시에도 메모리 절약을 위해 `--outtype F16`을 권장.
+    # F32는 파일 크기가 매우 크고 추론 시 더 많은 메모리를 요구함.
     convert_command = [
         "python", convert_py_path,
         merged_model_save_path, # 병합된 모델 경로 사용
