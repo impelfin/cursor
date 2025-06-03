@@ -59,5 +59,5 @@ else
 fi
 
 # --- 모델 실행 (ollama run) ---
-echo "모델 '${OLLAMA_MODEL_TAG}' 실행 중..."
-ollama run "${OLLAMA_MODEL_TAG}"
+# echo "모델 '${OLLAMA_MODEL_TAG}' 실행 중..."
+# ollama run "${OLLAMA_MODEL_TAG}"
