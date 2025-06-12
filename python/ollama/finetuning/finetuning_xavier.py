@@ -6,6 +6,8 @@ import subprocess
 import logging
 from datetime import datetime
 
+# pip install transformers peft datasets accelerate trl bitsandbytes
+
 # Hugging Face 관련 라이브러리 (pip install 필수!)
 # Jetson에서 설치: pip install transformers peft datasets trl accelerate
 # 주의: bitsandbytes는 Jetson에서 설치가 매우 어렵거나 불가능합니다. 이 스크립트에서는 사용하지 않습니다.
