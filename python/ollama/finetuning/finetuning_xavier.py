@@ -199,28 +199,44 @@ except Exception as e:
 
 
 # =========================
-# 11. GGUF 변환
+# 11. GGUF 변환 (llama.cpp convert.py 대신 transformers 라이브러리 사용)
 # =========================
-logger.info("11단계: GGUF 변환 시작")
+logger.info("11단계: GGUF 변환 시작 (Hugging Face transformers 이용)")
 logger.info(f"GGUF 변환 시작: {gguf_output_path}")
 
-# merged_model_file_path = os.path.join(merged_model_save_path, "pytorch_model.bin")
-merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors")
-
-convert_command = [
-    f"{sys.executable}", # 현재 파이썬 인터프리터 사용
-    os.path.join(llama_cpp_path, "convert.py"), # 변경된 스크립트 이름
-    merged_model_file_path,  # 병합된 모델 파일 경로
-    "--outfile", gguf_output_path,
-    "--outtype", "f16"
-]
-
-logger.info(f"실행 명령: {' '.join(convert_command)}")
-
 try:
-    subprocess.run(convert_command, check=True, cwd=os.getcwd()) # cwd 명시적으로 현재 작업 디렉토리
+    # transformers 라이브러리의 convert_safetensors_to_gguf 함수 사용
+    # 이 함수는 llama_cpp-python 패키지에 포함되어 있을 수 있습니다.
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers.utils.quantization_utils import convert_safetensors_to_gguf
+    import torch
+
+    # 병합된 모델과 토크나이저를 다시 로드합니다.
+    merged_model_load_path = os.path.join(output_dir, "merged_model")
+    model_for_gguf = AutoModelForCausalLM.from_pretrained(
+        merged_model_load_path,
+        torch_dtype=torch.float16, # FP16으로 로드
+        trust_remote_code=True
+    )
+    tokenizer_for_gguf = AutoTokenizer.from_pretrained(merged_model_load_path)
+
+    # GGUF 변환 실행
+    convert_safetensors_to_gguf(
+        model_for_gguf,
+        tokenizer_for_gguf,
+        gguf_output_path,
+        # 추가적인 양자화 타입 (예: "q4_0", "q8_0" 등)을 지정할 수 있습니다.
+        # "f16"은 그대로 FP16으로 저장합니다.
+        quant_type="f16"
+    )
+
     logger.info("GGUF 변환 완료")
-except subprocess.CalledProcessError as e:
+
+except ImportError:
+    logger.error("`llama_cpp-python` 또는 `transformers` 라이브러리에 GGUF 변환 기능이 없거나 제대로 설치되지 않았습니다.")
+    logger.error("`pip install llama_cpp-python` 또는 `pip install --upgrade transformers`를 시도해 보세요.")
+    sys.exit(1)
+except Exception as e:
     logger.error(f"GGUF 변환 오류: {e}")
     sys.exit(1)
 
