@@ -44,6 +44,6 @@ echo "==================================="
 
 python3 -m pip install --upgrade pip
 
-python3 -m pip install numpy==1.26.1 
+python3 -m pip install numpy==1.24.4
 
 python3 -m pip install --no-cache $TORCH_INSTALL
