@@ -17,13 +17,11 @@ logger = logging.getLogger(__name__)
 # 1. 경로 및 환경 변수 설정
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
-# 기존 로컬 경로 대신 Hugging Face Hub 모델 ID로 변경
-# ❗❗❗ 이곳을 EleutherAI/gpt-neo-125m 으로 변경합니다 ❗❗❗
-base_model_local_path = "EleutherAI/gpt-neo-125m" 
+base_model_local_path = "facebook/opt-125m"
 sft_json_path = "./sft.json"  # 10개 이하 소규모 데이터셋 사용 권장
-output_dir = "./finetuned-gpt-neo-125m" # 출력 디렉토리 이름도 변경
+output_dir = "./finetuned-opt-125m" # 출력 디렉토리 이름도 변경
 os.makedirs(output_dir, exist_ok=True)
-gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf" # GGUF 이름 변경
+gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf"
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 llama_cpp_path = "llama.cpp"
 
