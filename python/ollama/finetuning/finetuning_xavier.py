@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
 # 기존 로컬 경로 대신 Hugging Face Hub 모델 ID로 변경
-# ❗❗❗ 이곳을 open_llama_3b_v2로 변경합니다 ❗❗❗
-base_model_local_path = "open_llama_3b_v2" 
+# ❗❗❗ 이곳을 EleutherAI/gpt-neo-125m 으로 변경합니다 ❗❗❗
+base_model_local_path = "EleutherAI/gpt-neo-125m" 
 sft_json_path = "./sft.json"  # 10개 이하 소규모 데이터셋 사용 권장
-output_dir = "./finetuned-open-llama-3b_v2" # 출력 디렉토리 이름도 변경
+output_dir = "./finetuned-gpt-neo-125m" # 출력 디렉토리 이름도 변경
 os.makedirs(output_dir, exist_ok=True)
 gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf" # GGUF 이름 변경
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
@@ -47,7 +47,7 @@ try:
         base_model_local_path,
         torch_dtype=torch.float16,
         trust_remote_code=True,
-        local_files_only=True 
+        local_files_only=False 
     ).to(device)
     model.config.use_cache = False
     model.gradient_checkpointing_enable()  # 메모리 절약
@@ -55,7 +55,7 @@ try:
     tokenizer = AutoTokenizer.from_pretrained(
         base_model_local_path,
         trust_remote_code=True,
-        local_files_only=True, 
+        local_files_only=False, 
         use_fast=False # OpenLLaMA는 fast tokenizer 사용 시 문제가 있을 수 있음
     )
     if tokenizer.pad_token is None:
@@ -183,7 +183,7 @@ try:
         base_model_local_path,
         torch_dtype=torch.float16,
         trust_remote_code=True,
-        local_files_only=True 
+        local_files_only=False 
     ).to(device)
 
     model_to_merge = PeftModel.from_pretrained(base_model_full, output_dir)
