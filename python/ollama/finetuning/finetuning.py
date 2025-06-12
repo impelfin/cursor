@@ -21,7 +21,7 @@ logger.info("1단계: 경로 및 환경 변수 설정")
 # 기존 로컬 경로 대신 Hugging Face Hub 모델 ID로 변경
 # ❗❗❗ 이곳을 openlm-research/open_llama_3b로 변경합니다 ❗❗❗
 base_model_local_path = "openlm-research/open_llama_3b" # 또는 "openlm-research/open_llama_3b_v2"
-sft_json_path = "./sft.json"  # 10개 이하 소규모 데이터셋 사용 권장
+sft_json_path = "./sft.json" # 10개 이하 소규모 데이터셋 사용 권장
 output_dir = "./finetuned-open-llama-3b" # 출력 디렉토리 이름도 변경
 os.makedirs(output_dir, exist_ok=True)
 gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf" # GGUF 이름 변경
