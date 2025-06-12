@@ -157,7 +157,7 @@ trainer = SFTTrainer(
 )
 
 try:
-    trainer.train(resume_from_checkpoint=True)
+    trainer.train()
     logger.info("파인튜닝 완료")
 except Exception as e:
     logger.error(f"파인튜닝 중 오류: {e}")
