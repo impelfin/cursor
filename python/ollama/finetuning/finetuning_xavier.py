@@ -141,7 +141,7 @@ sft_training_args = SFTConfig(
     gradient_checkpointing=True,
     ddp_find_unused_parameters=False,
     auto_find_batch_size=False,
-    resume_from_checkpoint=True, # 기존 체크포인트에서 학습 재개
+    # resume_from_checkpoint=True, # 기존 체크포인트에서 학습 재개
 )
 
 # =========================
