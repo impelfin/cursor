@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
 base_model_local_path = "./llama-3.2-1b"
-sft_json_path = "./sft_short.json"  # 소규모 데이터셋 권장
+sft_json_path = "./sft.json"  # 반드시 10개 이하 소규모 데이터셋 사용 권장
 output_dir = "./finetuned-llama-3.2-1b"
 os.makedirs(output_dir, exist_ok=True)
 gguf_output_name = f"{os.path.basename(base_model_local_path).lower()}-finetuned.gguf"
@@ -66,12 +66,13 @@ except Exception as e:
     sys.exit(1)
 
 # =========================
-# 4. 데이터셋 로드 및 전처리
+# 4. 데이터셋 로드 및 전처리 (10개만 사용)
 # =========================
-logger.info("4단계: 데이터셋 로드 및 전처리")
+logger.info("4단계: 데이터셋 로드 및 전처리 (10개 샘플만 사용)")
 try:
     with open(sft_json_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
+    raw_data = raw_data[:10]  # 10개만 추출
 
     def format_data_for_sft(example):
         if "instruction" in example and "output" in example:
@@ -92,13 +93,13 @@ except Exception as e:
     sys.exit(1)
 
 # =========================
-# 5. LoRA 설정 (경량화)
+# 5. LoRA 설정 (최소화)
 # =========================
-logger.info("5단계: LoRA 설정(경량화)")
+logger.info("5단계: LoRA 설정(최소화)")
 peft_config = LoraConfig(
-    lora_alpha=8,      # 16 → 8로 축소
-    lora_dropout=0.05, # 0.1 → 0.05로 축소
-    r=16,              # 64 → 16로 축소
+    lora_alpha=4,
+    lora_dropout=0.05,
+    r=4,
     bias="none",
     task_type="CAUSAL_LM",
     target_modules=["q_proj", "v_proj"],  # 핵심 레이어만
@@ -118,11 +119,11 @@ logger.info("LoRA 어댑터 적용 완료.")
 logger.info("7단계: 학습 인자 설정(최소화)")
 sft_training_args = SFTConfig(
     output_dir=output_dir,
-    num_train_epochs=1,  # Jetson은 1~2 epoch만 권장
+    num_train_epochs=1,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=8,
-    optim="adafactor",   # 메모리 효율적 옵티마이저
-    learning_rate=1e-4,
+    optim="adafactor",
+    learning_rate=5e-5,
     lr_scheduler_type="cosine",
     save_steps=50,
     logging_steps=10,
@@ -134,7 +135,7 @@ sft_training_args = SFTConfig(
     warmup_ratio=0.03,
     group_by_length=True,
     disable_tqdm=False,
-    max_seq_length=64,   # 128 → 64로 축소
+    max_seq_length=32,
     dataset_text_field="text",
     packing=False,
 )
@@ -224,3 +225,8 @@ else:
     else:
         logger.error("GGUF 모델 생성 실패")
         sys.exit(1)
+
+# =========================
+# 12. 학습 완료
+# =========================
+logger.info("12단계: 학습 완료")
