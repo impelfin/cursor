@@ -201,7 +201,8 @@ except Exception as e:
 # 11. GGUF 변환
 # =========================
 logger.info("11단계: GGUF 변환 시작")
-convert_py_path = os.path.join(llama_cpp_path, "convert_hf_to_gguf.py")
+# convert_py_path = os.path.join(llama_cpp_path, "convert_hf_to_gguf.py")
+convert_py_path = os.path.join(llama_cpp_path, "convert.py")
 
 if not os.path.exists(convert_py_path):
     logger.warning(f"'{convert_py_path}'를 찾을 수 없습니다. llama.cpp 클론/빌드 필요.")
