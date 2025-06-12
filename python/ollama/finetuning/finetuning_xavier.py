@@ -121,7 +121,7 @@ logger.info("LoRA 어댑터 적용 완료.")
 logger.info("7단계: 학습 인자 설정(최소화)")
 sft_training_args = SFTConfig(
     output_dir=output_dir,
-    num_train_epochs=1,
+    num_train_epochs=2,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=16, # 그래디언트 누적 단계 유지 (최대화)
     optim="adafactor", # adafactor 유지
@@ -143,6 +143,7 @@ sft_training_args = SFTConfig(
     gradient_checkpointing=True,
     ddp_find_unused_parameters=False,
     auto_find_batch_size=False,
+    resume_from_checkpoint=True, # 기존 체크포인트에서 학습 재개
 )
 
 # =========================
@@ -158,7 +159,7 @@ trainer = SFTTrainer(
 )
 
 try:
-    trainer.train()
+    trainer.train(resume_from_checkpoint=True)
     logger.info("파인튜닝 완료")
 except Exception as e:
     logger.error(f"파인튜닝 중 오류: {e}")
