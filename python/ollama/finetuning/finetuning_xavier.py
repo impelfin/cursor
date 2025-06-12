@@ -18,11 +18,13 @@ logger = logging.getLogger(__name__)
 # 1. 경로 및 환경 변수 설정
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
-base_model_local_path = "./llama-3.2-1b"
-sft_json_path = "./sft.json"  # 반드시 10개 이하 소규모 데이터셋 사용 권장
-output_dir = "./finetuned-llama-3.2-1b"
+# 기존 로컬 경로 대신 Hugging Face Hub 모델 ID로 변경
+# ❗❗❗ 이곳을 openlm-research/open_llama_3b로 변경합니다 ❗❗❗
+base_model_local_path = "openlm-research/open_llama_3b" # 또는 "openlm-research/open_llama_3b_v2"
+sft_json_path = "./sft.json"  # 10개 이하 소규모 데이터셋 사용 권장
+output_dir = "./finetuned-open-llama-3b" # 출력 디렉토리 이름도 변경
 os.makedirs(output_dir, exist_ok=True)
-gguf_output_name = f"{os.path.basename(base_model_local_path).lower()}-finetuned.gguf"
+gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf" # GGUF 이름 변경
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 llama_cpp_path = "llama.cpp"
 
@@ -46,7 +48,7 @@ try:
         base_model_local_path,
         torch_dtype=torch.float16,
         trust_remote_code=True,
-        local_files_only=True
+        local_files_only=False # ❗❗❗ 로컬 파일만 사용하는 옵션 해제 ❗❗❗
     ).to(device)
     model.config.use_cache = False
     model.gradient_checkpointing_enable()  # 메모리 절약
@@ -54,7 +56,8 @@ try:
     tokenizer = AutoTokenizer.from_pretrained(
         base_model_local_path,
         trust_remote_code=True,
-        local_files_only=True
+        local_files_only=False, # ❗❗❗ 로컬 파일만 사용하는 옵션 해제 ❗❗❗
+        use_fast=False # OpenLLaMA는 fast tokenizer 사용 시 문제가 있을 수 있음
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -102,7 +105,7 @@ peft_config = LoraConfig(
     r=4,
     bias="none",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"], # LoRA 타겟 모듈 확장
+    target_modules=["q_proj", "v_proj"], # VRAM 문제 해결을 위해 다시 최소화된 타겟 모듈로 복귀
 )
 
 # =========================
@@ -121,8 +124,8 @@ sft_training_args = SFTConfig(
     output_dir=output_dir,
     num_train_epochs=1,
     per_device_train_batch_size=1,
-    gradient_accumulation_steps=16, # 그래디언트 누적 단계 증가
-    optim="adafactor", # 이미 adafactor 사용 중 (좋은 선택)
+    gradient_accumulation_steps=16, # 그래디언트 누적 단계 유지 (최대화)
+    optim="adafactor", # adafactor 유지
     learning_rate=5e-5,
     lr_scheduler_type="cosine",
     save_steps=50,
@@ -130,7 +133,7 @@ sft_training_args = SFTConfig(
     push_to_hub=False,
     report_to="none",
     fp16=True,
-    bf16=False, # Jetson은 bf16을 지원하지 않음
+    bf16=False,
     max_grad_norm=0.3,
     warmup_ratio=0.03,
     group_by_length=True,
@@ -138,10 +141,9 @@ sft_training_args = SFTConfig(
     max_seq_length=32,
     dataset_text_field="text",
     packing=False,
-    # 추가된 메모리 절약 옵션
-    gradient_checkpointing=True, # 이미 model.gradient_checkpointing_enable()로 설정했지만, TrainingArguments에도 명시
-    ddp_find_unused_parameters=False, # 분산 학습이 아니더라도 메모리 절약에 도움
-    auto_find_batch_size=False, # 자동 배치 사이즈 탐색 비활성화 (메모리 예측 오류 방지)
+    gradient_checkpointing=True,
+    ddp_find_unused_parameters=False,
+    auto_find_batch_size=False,
 )
 
 # =========================
@@ -176,11 +178,12 @@ logger.info(f"LoRA 어댑터와 토크나이저 저장 완료: {output_dir}")
 # =========================
 logger.info("10단계: LoRA 어댑터 병합 및 전체 모델 저장")
 try:
+    # 병합을 위해 다시 기본 모델 로드 (Hugging Face Hub에서 다운로드)
     base_model_full = AutoModelForCausalLM.from_pretrained(
         base_model_local_path,
         torch_dtype=torch.float16,
         trust_remote_code=True,
-        local_files_only=True
+        local_files_only=False # ❗❗❗ 로컬 파일만 사용하는 옵션 해제 ❗❗❗
     ).to(device)
 
     model_to_merge = PeftModel.from_pretrained(base_model_full, output_dir)
