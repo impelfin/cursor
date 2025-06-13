@@ -198,50 +198,29 @@ except Exception as e:
     sys.exit(1)
 
 
-# finetuning_xavier.py 내 11단계 (GGUF 변환) 부분
 # =========================
-# 11. GGUF 변환 (Hugging Face transformers 이용)
+# 11. GGUF 변환
 # =========================
-logger.info("11단계: GGUF 변환 시작 (Hugging Face transformers 이용)")
+logger.info("11단계: GGUF 변환 시작")
 logger.info(f"GGUF 변환 시작: {gguf_output_path}")
 
+# merged_model_file_path = os.path.join(merged_model_save_path, "pytorch_model.bin")
+merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors")
+
+convert_command = [
+    f"{sys.executable}", # 현재 파이썬 인터프리터 사용
+    os.path.join(llama_cpp_path, "convert-refact-hf-to-gguf.py")
+    "--outfile", gguf_output_path,
+    "--outtype", "f16"
+]
+
+logger.info(f"실행 명령: {' '.join(convert_command)}")
+
 try:
-    # transformers 라이브러리의 convert_safetensors_to_gguf 함수 사용
-    # 이 함수는 llama_cpp-python 패키지에 포함되어 있을 수 있습니다.
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    # ! 중요한 부분: 이 함수가 transformers 버전에 따라 경로가 다를 수 있습니다.
-    # 만약 아래 임포트가 실패하면, transformers 깃허브에서 해당 함수 경로를 찾아야 합니다.
-    # 현재로서는 이 경로가 맞아야 합니다.
-    from transformers.utils.quantization_utils import convert_safetensors_to_gguf
-    import torch
-
-    # 병합된 모델과 토크나이저를 다시 로드합니다.
-    merged_model_load_path = os.path.join(output_dir, "merged_model")
-    logger.info(f"병합된 모델 로드: {merged_model_load_path}")
-    model_for_gguf = AutoModelForCausalLM.from_pretrained(
-        merged_model_load_path,
-        torch_dtype=torch.float16, # FP16으로 로드
-        trust_remote_code=True
-    )
-    tokenizer_for_gguf = AutoTokenizer.from_pretrained(merged_model_load_path)
-
-    logger.info(f"GGUF 변환 시작: {gguf_output_path} (양자화 타입: f16)")
-    convert_safetensors_to_gguf(
-        model_for_gguf,
-        tokenizer_for_gguf,
-        gguf_output_path,
-        quant_type="f16" # FP16으로 저장
-    )
-
+    subprocess.run(convert_command, check=True, cwd=os.getcwd()) # cwd 명시적으로 현재 작업 디렉토리
     logger.info("GGUF 변환 완료")
-
-except ImportError as ie:
-    logger.error(f"GGUF 변환 기능 임포트 오류: {ie}")
-    logger.error("`llama_cpp-python` 또는 `transformers` 라이브러리에 GGUF 변환 기능이 없거나 제대로 설치되지 않았습니다.")
-    logger.error("`pip install llama_cpp-python` 또는 `pip install --upgrade transformers`를 시도해 보세요. (이미 하셨다면 파이썬 환경 문제일 수 있습니다.)")
-    sys.exit(1)
-except Exception as e:
-    logger.error(f"GGUF 변환 중 일반 오류: {e}")
+except subprocess.CalledProcessError as e:
+    logger.error(f"GGUF 변환 오류: {e}")
     sys.exit(1)
 
 # =========================
