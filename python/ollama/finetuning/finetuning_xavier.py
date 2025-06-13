@@ -197,32 +197,40 @@ except Exception as e:
     logger.error(f"LoRA 병합 오류: {e}")
     sys.exit(1)
 
-
 # =========================
 # 11. GGUF 변환
 # =========================
 logger.info("11단계: GGUF 변환 시작")
-logger.info(f"GGUF 변환 시작: {gguf_output_path}")
+# convert_py_path = os.path.join(llama_cpp_path, "convert_hf_to_gguf.py")
+convert_py_path = os.path.join(llama_cpp_path, "convert.py")
 
-# merged_model_file_path = os.path.join(merged_model_save_path, "pytorch_model.bin")
-merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors")
-
-convert_command = [
-    f"{sys.executable}", # 현재 파이썬 인터프리터 사용
-    os.path.join(llama_cpp_path, "convert-refact-hf-to-gguf.py"),
-    merged_model_file_path, 
-    "--outfile", gguf_output_path,
-    "--outtype", "f16"
-]
-
-logger.info(f"실행 명령: {' '.join(convert_command)}")
-
-try:
-    subprocess.run(convert_command, check=True, cwd=os.getcwd()) # cwd 명시적으로 현재 작업 디렉토리
-    logger.info("GGUF 변환 완료")
-except subprocess.CalledProcessError as e:
-    logger.error(f"GGUF 변환 오류: {e}")
+if not os.path.exists(convert_py_path):
+    logger.warning(f"'{convert_py_path}'를 찾을 수 없습니다. llama.cpp 클론/빌드 필요.")
     sys.exit(1)
+else:
+    logger.info(f"GGUF 변환 시작: {gguf_output_path}")
+    python_executable = sys.executable
+
+    convert_command = [
+        python_executable,
+        convert_py_path,
+        merged_model_save_path,
+        "--outfile", gguf_output_path,
+        "--outtype", "f16"
+    ]
+    logger.info(f"실행 명령: {' '.join(convert_command)}")
+
+    try:
+        process = subprocess.run(convert_command, check=True)
+    except Exception as e:
+        logger.error(f"GGUF 변환 오류: {e}")
+        sys.exit(1)
+
+    if os.path.exists(gguf_output_path):
+        logger.info(f"GGUF 모델 생성 완료: {gguf_output_path}")
+    else:
+        logger.error("GGUF 모델 생성 실패")
+        sys.exit(1)
 
 # =========================
 # 12. 학습 완료
