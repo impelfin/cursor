@@ -62,7 +62,7 @@ try:
         local_files_only=False
     ).to(device)
     model.config.use_cache = False
-    model.gradient_checkpointing_enable()  # 메모리 절약
+    model.gradient_checkpointing_enable() # 메모리 절약
 
     tokenizer = AutoTokenizer.from_pretrained(
         base_model_local_path,
