@@ -209,7 +209,8 @@ merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors
 
 convert_command = [
     f"{sys.executable}", # 현재 파이썬 인터프리터 사용
-    os.path.join(llama_cpp_path, "convert-refact-hf-to-gguf.py")
+    os.path.join(llama_cpp_path, "convert-refact-hf-to-gguf.py"),
+    merged_model_file_path, 
     "--outfile", gguf_output_path,
     "--outtype", "f16"
 ]
