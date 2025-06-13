@@ -203,12 +203,13 @@ except Exception as e:
 logger.info("11단계: GGUF 변환 시작")
 logger.info(f"GGUF 변환 시작: {gguf_output_path}")
 
-model_input_path = os.path.join(output_dir, "merged_model")
+# merged_model_file_path = os.path.join(merged_model_save_path, "pytorch_model.bin")
+merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors")
 
 convert_command = [
-    f"{sys.executable}", 
-    os.path.join(llama_cpp_path, "convert.py"), 
-    model_input_path, 
+    f"{sys.executable}", # 현재 파이썬 인터프리터 사용
+    os.path.join(llama_cpp_path, "convert.py"), # 변경된 스크립트 이름
+    merged_model_file_path,  # ❗❗❗ 이곳을 실제 모델 파일 경로로 변경 ❗❗❗
     "--outfile", gguf_output_path,
     "--outtype", "f16"
 ]
@@ -216,11 +217,12 @@ convert_command = [
 logger.info(f"실행 명령: {' '.join(convert_command)}")
 
 try:
-    subprocess.run(convert_command, check=True, cwd=os.getcwd())
+    subprocess.run(convert_command, check=True, cwd=os.getcwd()) # cwd 명시적으로 현재 작업 디렉토리
     logger.info("GGUF 변환 완료")
 except subprocess.CalledProcessError as e:
     logger.error(f"GGUF 변환 오류: {e}")
     sys.exit(1)
+
 
 # =========================
 # 12. 학습 완료
