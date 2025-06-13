@@ -131,7 +131,7 @@ model = None # 모델 초기화
 if adapter_exists:
     logger.info(f"기존 LoRA 어댑터 파일 발견: {output_dir}. 학습을 이어갑니다.")
     try:
-        # SFTTrainer에 직접 로드된 PeftModel을 전달하기 위해 미리 모델을 로드
+        # base_model에 LoRA 어댑터를 직접 로드하여 PeftModel 생성
         model = PeftModel.from_pretrained(base_model, output_dir)
         model = model.to(device)
         logger.info("기존 LoRA 어댑터 로드 성공.")
@@ -146,10 +146,9 @@ else:
 
 model.print_trainable_parameters()
 
-# 학습 가능한 파라미터가 0개인 경우 경고 및 강제 새로 시작 (선택 사항)
-if model.print_trainable_parameters() == "trainable params: 0 || all params: 465,880,064 || trainable%: 0.0000":
+# trainable params가 0이면 기존 어댑터가 잘못된 것이므로 강제로 새로 시작
+if model.get_nb_trainable_parameters() == 0:
     logger.warning("경고: 학습 가능한 파라미터가 0개입니다. 기존 어댑터에 문제가 있을 수 있습니다. 강제로 새로운 학습을 시작합니다.")
-    # trainable params가 0이면 기존 어댑터가 잘못된 것이므로 강제로 새로 시작
     model = get_peft_model(base_model, peft_config)
     model = model.to(device)
     model.print_trainable_parameters() # 다시 출력하여 새로운 파라미터가 잡혔는지 확인
@@ -184,8 +183,6 @@ sft_training_args = SFTConfig(
     gradient_checkpointing=True,
     ddp_find_unused_parameters=False,
     auto_find_batch_size=False,
-    # Resume from checkpoint (이전 학습 이어가기)
-    # trainer.train()에서 자동으로 처리되므로 이 인자는 제거
 )
 
 # =========================
@@ -198,15 +195,16 @@ trainer = SFTTrainer(
     peft_config=peft_config,
     args=sft_training_args,
     tokenizer=tokenizer,
-    # SFTTrainer의 resume_from_checkpoint는 SFTConfig의 output_dir을 통해 작동합니다.
-    # 이전 로그에서 output_dir에 어댑터 파일이 있다고 판단했으므로, 이 값은 자동으로 사용될 것입니다.
-    # 명시적으로 전달할 필요는 없습니다.
+    # SFTTrainer 생성자는 resume_from_checkpoint 인자를 직접 받지 않습니다.
+    # 이 기능은 args(SFTConfig)의 output_dir을 통해 자동으로 처리됩니다.
 )
 
 try:
-    # resume_from_checkpoint=True로 설정하면 output_dir에 기존 체크포인트가 있을 때 이어서 학습합니다.
-    # SFTConfig의 output_dir을 통해 이 기능이 활성화됩니다.
-    trainer.train(resume_from_checkpoint=True if adapter_exists else False)
+    # trainer.train() 메서드는 resume_from_checkpoint 인자를 받을 수 있습니다.
+    # 그러나 현재 상황에서 옵티마이저 상태 불일치 문제가 지속되므로,
+    # 이 인자를 사용하지 않고 새롭게 시작하는 방식을 고수합니다.
+    # 즉, 모델은 LoRA 어댑터가 적용된 상태로 시작하지만, 옵티마이저는 새로 초기화됩니다.
+    trainer.train()
     logger.info("파인튜닝 완료")
 except Exception as e:
     logger.error(f"파인튜닝 중 오류: {e}")
@@ -240,7 +238,22 @@ except Exception as e:
 
 # =========================
 # 10.5단계: model.safetensors를 pytorch_model.bin으로 변환 (선택 사항, 필요 시 활성화)
-# ... (이전과 동일) ...
+# convert_hf_to_gguf.py가 safetensors도 처리 가능하지만, 안정성을 위해 bin도 생성해둡니다.
+# =========================
+# logger.info("10.5단계: model.safetensors를 pytorch_model.bin으로 변환 시작")
+# pytorch_model_path_for_gguf_temp = os.path.join(merged_model_save_path, "pytorch_model.bin")
+# try:
+#     model_for_bin_conversion = AutoModelForCausalLM.from_pretrained(
+#         merged_model_save_path, # safetensors가 있는 디렉토리
+#         torch_dtype=torch.float16,
+#         device_map="auto" # GPU 사용
+#     )
+#     model_for_bin_conversion.save_pretrained(merged_model_save_path, safe_serialization=False)
+#     logger.info(f"model.safetensors가 {pytorch_model_path_for_gguf_temp}로 성공적으로 변환되었습니다.")
+# except Exception as e:
+#     logger.error(f"model.safetensors 변환 오류: {e}")
+#     sys.exit(1)
+
 
 # =========================
 # 11. GGUF 변환 (convert_hf_to_gguf.py를 직접 임포트하여 사용)
@@ -251,15 +264,15 @@ logger.info(f"GGUF 변환 시작: {gguf_output_path}")
 try:
     original_argv = sys.argv
     sys.argv = [
-        "convert_hf_to_gguf.py",
-        merged_model_save_path,
+        "convert_hf_to_gguf.py", # 스크립트 이름 (첫 번째 인자)
+        merged_model_save_path,  # 입력 모델 디렉토리
         "--outfile", gguf_output_path,
         "--outtype", "f16"
     ]
 
-    llama_converter.main()
+    llama_converter.main() # convert_hf_to_gguf.py 스크립트의 main 함수 호출
 
-    sys.argv = original_argv
+    sys.argv = original_argv # sys.argv를 원래대로 복원
 
     logger.info("GGUF 변환 완료")
 
