@@ -17,10 +17,14 @@ logger = logging.getLogger(__name__)
 # 1. 경로 및 환경 변수 설정
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
-base_model_local_path = "facebook/opt-125m"
-sft_json_path = "./sft.json" # 10개 이하 소규모 데이터셋 사용 권장
-output_dir = "./finetuned-opt-125m" # 출력 디렉토리 이름도 변경
+# 모델을 TinyLlama로 변경합니다.
+base_model_local_path = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+sft_json_path = "./sft.json"
+
+# 출력 디렉토리 이름도 변경된 모델에 맞춰 변경합니다.
+output_dir = "./finetuned-tinyllama-1.1b"
 os.makedirs(output_dir, exist_ok=True)
+
 gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf"
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 llama_cpp_path = "/home/moon/work/cursor/python/ollama/finetuning/llama.cpp" # 정확한 절대 경로로 수정해주세요!
@@ -58,7 +62,7 @@ try:
         local_files_only=False
     ).to(device)
     model.config.use_cache = False
-    model.gradient_checkpointing_enable() # 메모리 절약
+    model.gradient_checkpointing_enable()  # 메모리 절약
 
     tokenizer = AutoTokenizer.from_pretrained(
         base_model_local_path,
@@ -82,6 +86,7 @@ logger.info("4단계: 데이터셋 로드 및 전처리 (10개 샘플만 사용)
 try:
     with open(sft_json_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
+    # 여기서 처음 10개만 사용하도록 데이터를 슬라이싱합니다.
     raw_data = raw_data[:10]
 
     def format_data_for_sft(example):
@@ -256,4 +261,3 @@ except Exception as e:
 # 12. 학습 완료
 # =========================
 logger.info("12단계: 학습 완료")
-
