@@ -1,0 +1,10 @@
+# Modelfile (예: my_qwen_model_modelfile 이라는 이름으로 저장)
+FROM ./finetuned-qwen-0.5b/Qwen1.5-0.5B-Chat-finetuned.gguf
+
+# 프롬프트 형식을 Qwen 모델에 맞게 설정 (선택 사항이지만 권장)
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+"""

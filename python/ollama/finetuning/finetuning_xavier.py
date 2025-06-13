@@ -86,8 +86,7 @@ logger.info("4단계: 데이터셋 로드 및 전처리 (10개 샘플만 사용)
 try:
     with open(sft_json_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
-    # 여기서 처음 10개만 사용하도록 데이터를 슬라이싱합니다.
-    raw_data = raw_data[:10]
+    raw_data = raw_data[:100]
 
     def format_data_for_sft(example):
         if "instruction" in example and "output" in example:
