@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 # 1. 경로 및 환경 변수 설정
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
-# 모델을 TinyLlama로 변경합니다.
-base_model_local_path = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+# 모델을 Qwen1.5-0.5B-Chat으로 변경합니다.
+base_model_local_path = "Qwen/Qwen1.5-0.5B-Chat"
 sft_json_path = "./sft.json"
 
 # 출력 디렉토리 이름도 변경된 모델에 맞춰 변경합니다.
-output_dir = "./finetuned-tinyllama-1.1b"
+output_dir = "./finetuned-qwen-0.5b"
 os.makedirs(output_dir, exist_ok=True)
 
 gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}-finetuned.gguf"
@@ -117,7 +117,8 @@ peft_config = LoraConfig(
     r=4,
     bias="none",
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "v_proj"],
+    # Qwen 모델에 더 적합한 target_modules (대부분의 Llama/Qwen 계열에서 잘 작동)
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
 )
 
 # =========================
@@ -145,7 +146,7 @@ sft_training_args = SFTConfig(
     push_to_hub=False,
     report_to="none",
     fp16=True,
-    bf16=False,
+    bf16=False, # Jetson Nano는 bf16 지원하지 않습니다.
     max_grad_norm=0.3,
     warmup_ratio=0.03,
     group_by_length=True,
