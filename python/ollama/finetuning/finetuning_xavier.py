@@ -209,7 +209,7 @@ merged_model_file_path = os.path.join(merged_model_save_path, "model.safetensors
 convert_command = [
     f"{sys.executable}", # 현재 파이썬 인터프리터 사용
     os.path.join(llama_cpp_path, "convert.py"), # 변경된 스크립트 이름
-    merged_model_file_path,  # ❗❗❗ 이곳을 실제 모델 파일 경로로 변경 ❗❗❗
+    merged_model_file_path,  
     "--outfile", gguf_output_path,
     "--outtype", "f16"
 ]
