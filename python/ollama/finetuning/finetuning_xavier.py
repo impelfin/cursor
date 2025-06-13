@@ -17,11 +17,9 @@ logger = logging.getLogger(__name__)
 # 1. 경로 및 환경 변수 설정
 # =========================
 logger.info("1단계: 경로 및 환경 변수 설정")
-# 모델을 Qwen1.5-0.5B-Chat으로 변경합니다.
 base_model_local_path = "Qwen/Qwen1.5-0.5B-Chat"
 sft_json_path = "./sft.json"
 
-# 출력 디렉토리 이름도 변경된 모델에 맞춰 변경합니다.
 output_dir = "./finetuned-qwen-0.5b"
 os.makedirs(output_dir, exist_ok=True)
 
@@ -29,15 +27,12 @@ gguf_output_name = f"{os.path.basename(base_model_local_path).replace('/', '-')}
 gguf_output_path = os.path.join(output_dir, gguf_output_name)
 llama_cpp_path = "/home/moon/work/cursor/python/ollama/finetuning/llama.cpp" # 정확한 절대 경로로 수정해주세요!
 
-# llama.cpp 경로를 sys.path에 추가하여 convert_hf_to_gguf 모듈을 import 할 수 있도록 합니다.
 sys.path.append(llama_cpp_path)
 try:
-    # convert_hf_to_gguf.py를 import합니다.
     import convert_hf_to_gguf as llama_converter
 except ImportError as e:
     logger.error(f"convert_hf_to_gguf.py를 임포트할 수 없습니다. llama.cpp 경로 확인 또는 파일명 확인: {e}")
     sys.exit(1)
-
 
 # =========================
 # 2. 디바이스 확인 및 설정
@@ -55,14 +50,14 @@ else:
 # =========================
 logger.info("3단계: 모델 및 토크나이저 로드")
 try:
-    model = AutoModelForCausalLM.from_pretrained(
+    base_model = AutoModelForCausalLM.from_pretrained(
         base_model_local_path,
         torch_dtype=torch.float16,
         trust_remote_code=True,
         local_files_only=False
-    ).to(device)
-    model.config.use_cache = False
-    model.gradient_checkpointing_enable() # 메모리 절약
+    )
+    base_model.config.use_cache = False
+    base_model.gradient_checkpointing_enable()
 
     tokenizer = AutoTokenizer.from_pretrained(
         base_model_local_path,
@@ -74,9 +69,9 @@ try:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
-    logger.info("모델/토크나이저 로드 성공.")
+    logger.info("베이스 모델/토크나이저 로드 성공.")
 except Exception as e:
-    logger.error(f"모델/토크나이저 로드 오류: {e}")
+    logger.error(f"베이스 모델/토크나이저 로드 오류: {e}")
     sys.exit(1)
 
 # =========================
@@ -86,7 +81,7 @@ logger.info("4단계: 데이터셋 로드 및 전처리 (10개 샘플만 사용)
 try:
     with open(sft_json_path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
-    raw_data = raw_data[:100]
+    raw_data = raw_data[:10]
 
     def format_data_for_sft(example):
         if "instruction" in example and "output" in example:
@@ -116,16 +111,49 @@ peft_config = LoraConfig(
     r=4,
     bias="none",
     task_type="CAUSAL_LM",
-    # Qwen 모델에 더 적합한 target_modules (대부분의 Llama/Qwen 계열에서 잘 작동)
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
 )
 
 # =========================
-# 6. LoRA 적용
+# 6. LoRA 적용 (기존 학습 이어하기 또는 새로 시작)
 # =========================
-logger.info("6단계: LoRA 어댑터 적용")
-model = get_peft_model(model, peft_config)
+logger.info("6단계: LoRA 어댑터 적용 (기존 학습 이어하기 또는 새로 시작)")
+
+adapter_exists = False
+if os.path.exists(output_dir):
+    for f in os.listdir(output_dir):
+        if f.startswith("adapter_model.") and (f.endswith(".safetensors") or f.endswith(".bin")):
+            adapter_exists = True
+            break
+
+model = None # 모델 초기화
+
+if adapter_exists:
+    logger.info(f"기존 LoRA 어댑터 파일 발견: {output_dir}. 학습을 이어갑니다.")
+    try:
+        # SFTTrainer에 직접 로드된 PeftModel을 전달하기 위해 미리 모델을 로드
+        model = PeftModel.from_pretrained(base_model, output_dir)
+        model = model.to(device)
+        logger.info("기존 LoRA 어댑터 로드 성공.")
+    except Exception as e:
+        logger.error(f"기존 LoRA 어댑터 로드 중 오류: {e}. 새로운 학습을 시작합니다.")
+        model = get_peft_model(base_model, peft_config)
+        model = model.to(device)
+else:
+    logger.info("기존 LoRA 어댑터 파일 없음. 새로운 학습을 시작합니다.")
+    model = get_peft_model(base_model, peft_config)
+    model = model.to(device)
+
 model.print_trainable_parameters()
+
+# 학습 가능한 파라미터가 0개인 경우 경고 및 강제 새로 시작 (선택 사항)
+if model.print_trainable_parameters() == "trainable params: 0 || all params: 465,880,064 || trainable%: 0.0000":
+    logger.warning("경고: 학습 가능한 파라미터가 0개입니다. 기존 어댑터에 문제가 있을 수 있습니다. 강제로 새로운 학습을 시작합니다.")
+    # trainable params가 0이면 기존 어댑터가 잘못된 것이므로 강제로 새로 시작
+    model = get_peft_model(base_model, peft_config)
+    model = model.to(device)
+    model.print_trainable_parameters() # 다시 출력하여 새로운 파라미터가 잡혔는지 확인
+
 logger.info("LoRA 어댑터 적용 완료.")
 
 # =========================
@@ -145,7 +173,7 @@ sft_training_args = SFTConfig(
     push_to_hub=False,
     report_to="none",
     fp16=True,
-    bf16=False, # Jetson Nano는 bf16 지원하지 않습니다.
+    bf16=False,
     max_grad_norm=0.3,
     warmup_ratio=0.03,
     group_by_length=True,
@@ -156,6 +184,8 @@ sft_training_args = SFTConfig(
     gradient_checkpointing=True,
     ddp_find_unused_parameters=False,
     auto_find_batch_size=False,
+    # Resume from checkpoint (이전 학습 이어가기)
+    # trainer.train()에서 자동으로 처리되므로 이 인자는 제거
 )
 
 # =========================
@@ -168,10 +198,15 @@ trainer = SFTTrainer(
     peft_config=peft_config,
     args=sft_training_args,
     tokenizer=tokenizer,
+    # SFTTrainer의 resume_from_checkpoint는 SFTConfig의 output_dir을 통해 작동합니다.
+    # 이전 로그에서 output_dir에 어댑터 파일이 있다고 판단했으므로, 이 값은 자동으로 사용될 것입니다.
+    # 명시적으로 전달할 필요는 없습니다.
 )
 
 try:
-    trainer.train()
+    # resume_from_checkpoint=True로 설정하면 output_dir에 기존 체크포인트가 있을 때 이어서 학습합니다.
+    # SFTConfig의 output_dir을 통해 이 기능이 활성화됩니다.
+    trainer.train(resume_from_checkpoint=True if adapter_exists else False)
     logger.info("파인튜닝 완료")
 except Exception as e:
     logger.error(f"파인튜닝 중 오류: {e}")
@@ -190,14 +225,7 @@ logger.info(f"LoRA 어댑터와 토크나이저 저장 완료: {output_dir}")
 # =========================
 logger.info("10단계: LoRA 어댑터 병합 및 전체 모델 저장")
 try:
-    base_model_full = AutoModelForCausalLM.from_pretrained(
-        base_model_local_path,
-        torch_dtype=torch.float16,
-        trust_remote_code=True,
-        local_files_only=False
-    ).to(device)
-
-    model_to_merge = PeftModel.from_pretrained(base_model_full, output_dir)
+    model_to_merge = PeftModel.from_pretrained(base_model, output_dir)
     merged_model = model_to_merge.merge_and_unload()
 
     merged_model_save_path = os.path.join(output_dir, "merged_model")
@@ -212,22 +240,7 @@ except Exception as e:
 
 # =========================
 # 10.5단계: model.safetensors를 pytorch_model.bin으로 변환 (선택 사항, 필요 시 활성화)
-# convert_hf_to_gguf.py가 safetensors도 처리 가능하지만, 안정성을 위해 bin도 생성해둡니다.
-# =========================
-# logger.info("10.5단계: model.safetensors를 pytorch_model.bin으로 변환 시작")
-# pytorch_model_path_for_gguf_temp = os.path.join(merged_model_save_path, "pytorch_model.bin")
-# try:
-#     model_for_bin_conversion = AutoModelForCausalLM.from_pretrained(
-#         merged_model_save_path, # safetensors가 있는 디렉토리
-#         torch_dtype=torch.float16,
-#         device_map="auto" # GPU 사용
-#     )
-#     model_for_bin_conversion.save_pretrained(merged_model_save_path, safe_serialization=False)
-#     logger.info(f"model.safetensors가 {pytorch_model_path_for_gguf_temp}로 성공적으로 변환되었습니다.")
-# except Exception as e:
-#     logger.error(f"model.safetensors 변환 오류: {e}")
-#     sys.exit(1)
-
+# ... (이전과 동일) ...
 
 # =========================
 # 11. GGUF 변환 (convert_hf_to_gguf.py를 직접 임포트하여 사용)
@@ -236,20 +249,17 @@ logger.info("11단계: GGUF 변환 시작 (convert_hf_to_gguf.py 직접 임포�
 logger.info(f"GGUF 변환 시작: {gguf_output_path}")
 
 try:
-    # llama_converter.main 함수를 호출합니다.
-    # convert_hf_to_gguf.py 스크립트의 main 함수는 인자를 파싱하는 로직을 가지고 있을 겁니다.
-    # sys.argv를 임시로 조작하여 인자를 전달합니다.
     original_argv = sys.argv
     sys.argv = [
-        "convert_hf_to_gguf.py", # 스크립트 이름 (첫 번째 인자)
-        merged_model_save_path,  # 입력 모델 디렉토리
+        "convert_hf_to_gguf.py",
+        merged_model_save_path,
         "--outfile", gguf_output_path,
         "--outtype", "f16"
     ]
 
-    llama_converter.main() # convert_hf_to_gguf.py 스크립트의 main 함수 호출
+    llama_converter.main()
 
-    sys.argv = original_argv # sys.argv를 원래대로 복원
+    sys.argv = original_argv
 
     logger.info("GGUF 변환 완료")
 
