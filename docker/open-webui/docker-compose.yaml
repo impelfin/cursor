@@ -21,4 +21,3 @@ volumes:
     external: true
   open-webui-local:
     external: true
-
