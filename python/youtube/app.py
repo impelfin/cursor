@@ -1,6 +1,7 @@
+# pip install google-api-python-client
 from googleapiclient.discovery import build
 
-API_KEY = 'AIzaSyC19Q_v0lO1mHs_dJYx-_wDCsNUDJignboY'
+API_KEY = 'AIzaSyAsb4cmANEXgJI2flIkDG0gtQi14B1tB0A'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
