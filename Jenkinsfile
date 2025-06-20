@@ -12,12 +12,12 @@ pipeline {
     // 파이프라인 단계 정의
     stages {
         // 1. Git 저장소에서 소스 코드 복제 단계
-        stage('Git Clone') {
-            steps {
-                echo 'Git 저장소에서 소스 코드 복제 중...'
-                git branch: 'main', url: 'https://github.com/impelfin/cursor.git'
-            }
-        }
+        // stage('Git Clone') {
+        //     steps {
+        //         echo 'Git 저장소에서 소스 코드 복제 중...'
+        //         git branch: 'main', url: 'https://github.com/impelfin/cursor.git'
+        //     }
+        // }
 
         // 2. 소스 코드 체크아웃 확인 단계 (복제 후 확인 메시지)
         stage('Checkout') {
@@ -47,24 +47,24 @@ pipeline {
         }
 
         // 5. 테스트 단계 (선택 사항)
-        stage('Test') {
-            steps {
-                dir(APP_DIR) {
-                    echo "애플리케이션 테스트 실행 중..."
-                    sh 'echo "테스트 단계는 선택 사항입니다. `npm test`를 실행하려면 주석을 해제하세요."'
-                }
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         dir(APP_DIR) {
+        //             echo "애플리케이션 테스트 실행 중..."
+        //             sh 'echo "테스트 단계는 선택 사항입니다. `npm test`를 실행하려면 주석을 해제하세요."'
+        //         }
+        //     }
+        // }
 
         // 6. 빌드 단계 
-        stage('Build') {
-            steps {
-                dir(APP_DIR) {
-                    echo "애플리케이션 빌드 중..."
-                    sh 'echo "별도의 빌드 단계가 필요 없습니다. 의존성 설치로 충분합니다."'
-                }
-            }
-        }
+        // stage('Build') {
+        //     steps {
+        //         dir(APP_DIR) {
+        //             echo "애플리케이션 빌드 중..."
+        //             sh 'echo "별도의 빌드 단계가 필요 없습니다. 의존성 설치로 충분합니다."'
+        //         }
+        //     }
+        // }
 
         // 7. 애플리케이션 실행/배포 단계
         stage('Run Application') {
