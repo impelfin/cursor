@@ -1,121 +1,110 @@
+import requests
+import json
 import os
-import google.auth
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-
-# YouTube Data API 사용을 위한 OAuth 2.0 스코프
-SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
-
-def get_authenticated_service():
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'client_secret.json', SCOPES)
-            
-
-            auth_url, _ = flow.authorization_url(prompt='consent', include_granted_scopes='true')
-            print("--- Google 인증을 진행해주세요 ---")
-            print(f"아래 URL을 웹 브라우저에 복사하여 붙여넣으세요:\n{auth_url}")
-            print("\n인증 완료 후, 브라우저에 표시되는 '인증 코드'를 여기에 입력해주세요:")
-            
-            # 사용자가 수동으로 인증 코드를 입력하게 합니다.
-            code = input("인증 코드: ").strip()
-            flow.fetch_token(code=code) # 입력받은 코드로 토큰을 가져옵니다.
-            creds = flow.credentials
-            # --- 변경된 부분 끝 ---
-
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-    return build('youtube', 'v3', credentials=creds)
-
-# (나머지 get_video_id 및 download_captions 함수와 main 부분은 동일합니다.)
+import datetime # 시간 포맷팅을 위해 datetime 모듈 추가
 
 def get_video_id(video_url):
-    """YouTube URL에서 비디오 ID를 추출합니다."""
-    # YouTube URL 형식이 다양할 수 있으므로, 좀 더 robust하게 처리합니다.
-    if "v=" in video_url:
-        video_id = video_url.split("v=")[1]
-        # 추가적인 파라미터가 있을 수 있으므로, &를 기준으로 잘라냅니다.
-        if "&" in video_id:
-            video_id = video_id.split("&")[0]
-        return video_id[:11]  # 비디오 ID는 보통 11자입니다.
-    elif "youtu.be/" in video_url:
-        video_id = video_url.split("youtu.be/")[1]
-        if "?" in video_id:
-            video_id = video_id.split("?")[0]
-        return video_id
+    """
+    YouTube 비디오 URL에서 비디오 ID를 추출합니다.
+    URL 형식이 'v='를 포함하지 않을 경우를 대비하여 예외 처리를 추가했습니다.
+    """
+    if 'v=' in video_url:
+        video_id = video_url.split("v=")[1][:11]
     else:
-        return None # 유효하지 않은 URL
+        # 실제 사용 시에는 유효한 YouTube URL을 사용해야 합니다.
+        print("경고: 유효한 YouTube 비디오 URL 형식이 아닙니다. 기본 ID를 사용합니다.")
+        video_id = "Ks-_Mh1QhMc" # 예시 ID 사용
+    return video_id
 
-def download_captions(youtube, video_id, download_folder='./data'):
-    """YouTube Data API를 사용하여 자막을 다운로드합니다."""
-    try:
-        # 1. 자막 트랙 목록 가져오기
-        captions_list_request = youtube.captions().list(
-            part='snippet',
-            videoId=video_id
-        )
-        captions_list_response = captions_list_request.execute()
+def format_time(ms):
+    """밀리초를 SRT 시간 포맷 (HH:MM:SS,ms)으로 변환"""
+    total_seconds = int(ms / 1000)
+    milliseconds = int(ms % 1000)
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
 
-        print(f"'{video_id}' 비디오의 사용 가능한 자막 트랙:")
-        for item in captions_list_response.get('items', []):
-            print(f"- ID: {item['id']}, 언어: {item['snippet']['language']}, 이름: {item['snippet'].get('name', 'N/A')}")
+# 여기서는 직접 비디오 ID를 지정하여 Supadata API 호출에 사용합니다.
+# 실제 사용할 비디오 ID를 여기에 입력하세요.
+video_id = 'Ks-_Mh1QhMc'
 
-        # 2. 한국어 자막 트랙 ID 찾기 (또는 다른 언어)
-        target_caption_id = None
-        for item in captions_list_response.get('items', []):
-            if item['snippet']['language'] == 'ko':
-                target_caption_id = item['id']
-                print(f"한국어 자막 ID를 찾았습니다: {target_caption_id}")
-                break
-        if not target_caption_id:
-             # 한국어 자막이 없으면, 생성된 자막을 찾습니다.
-            for item in captions_list_response.get('items', []):
-                if item['snippet']['language'] == 'a.ko':  # a.ko는 자동 생성된 한국어 자막을 의미합니다.
-                    target_caption_id = item['id']
-                    print(f"자동 생성된 한국어 자막 ID를 찾았습니다: {target_caption_id}")
-                    break
-        if not target_caption_id:
-            print("한국어 자막 트랙을 찾을 수 없습니다. 다운로드할 수 있는 자막이 없습니다.")
-            return
+print(f"- Youtube Video ID : {video_id}")
 
-        # 3. 자막 다운로드
-        caption_download_request = youtube.captions().download(
-            id=target_caption_id,
-            tfmt='srt'  # SRT 형식으로 다운로드 (다른 형식도 지원: vtt, ttml)
-        )
-        caption_content = caption_download_request.execute()
+# Supadata API 정보
+supadata_api_url = f'https://api.supadata.ai/v1/youtube/transcript?videoId={video_id}'
+headers = {
+    'x-api-key': 'sd_474ffea05db982b82f0bc9407f6eff9b'
+}
 
-        # 4. 다운로드 폴더 생성 (필요한 경우)
-        os.makedirs(download_folder, exist_ok=True)
+try:
+    response = requests.get(supadata_api_url, headers=headers)
+    response.raise_for_status() # HTTP 오류(4xx, 5xx) 발생 시 예외 발생
+    supadata_data = response.json()
 
-        # 5. 파일로 저장
-        srt_file = os.path.join(download_folder, f"{video_id}.ko.srt")
+    available_langs = supadata_data.get('availableLangs', [])
+    transcript_content_from_api = supadata_data.get('content', [])
+    primary_lang = supadata_data.get('lang', '알 수 없음')
+
+    print("- Supadata API를 통해 가져온 정보:")
+    print(f"- [기본 자막 언어] {primary_lang}")
+    print(f"- [사용 가능한 언어 코드] {', '.join(available_langs)}")
+    print('-' * 50)
+
+    if not transcript_content_from_api:
+        print("Supadata API 응답에 자막 내용(content)이 없습니다.")
+    else:
+        # --- SRT 형식 문자열 직접 생성 ---
+        srt_formatted = ""
+        for i, item in enumerate(transcript_content_from_api):
+            start_time_ms = item.get('offset', 0)
+            duration_ms = item.get('duration', 0)
+            end_time_ms = start_time_ms + duration_ms
+            text = item.get('text', '')
+
+            srt_formatted += f"{i + 1}\n"
+            srt_formatted += f"{format_time(start_time_ms)} --> {format_time(end_time_ms)}\n"
+            srt_formatted += f"{text}\n\n"
+
+        print("--- SRT 형식 미리보기 (처음 150자) ---")
+        print(srt_formatted[:150])
+        print('-' * 50)
+
+        # --- TXT 형식 문자열 직접 생성 ---
+        text_formatted = ""
+        for item in transcript_content_from_api:
+            text_formatted += item.get('text', '') + "\n"
+
+        print("--- TXT 형식 미리보기 (처음 150자) ---")
+        print(text_formatted[:150])
+        print('-' * 50)
+
+        # 파일 저장
+        download_folder = './data'
+        if not os.path.exists(download_folder):
+            os.makedirs(download_folder)
+            print(f"다운로드 폴더 '{download_folder}'를 생성했습니다.")
+
+        srt_file = f'{download_folder}/{video_id}.srt'
+        print('- SRT 파일 저장 : ', srt_file)
         with open(srt_file, 'w', encoding='utf-8') as f:
-            f.write(caption_content)
-        print(f"자막이 '{srt_file}'으로 성공적으로 다운로드되었습니다.")
+            f.write(srt_formatted)
 
+        text_file = f'{download_folder}/{video_id}.txt'
+        print('- TXT 파일 저장 : ', text_file)
+        with open(text_file, 'w', encoding='utf-8') as f:
+            f.write(text_formatted)
 
-    except Exception as e:
-        print(f"자막 처리 중 오류 발생: {e}")
-
-if __name__ == '__main__':
-    # 1. 인증된 YouTube Data API 서비스 객체 생성
-    youtube = get_authenticated_service()
-
-    # 2. 비디오 URL 및 ID
-    video_url = 'https://www.youtube.com/watch?v=Ks-_Mh1QhMc'  # 테스트 URL
-    video_id = get_video_id(video_url)
-
-    if not video_id:
-        print("유효하지 않은 YouTube URL입니다.")
-    else:
-        # 3. 자막 다운로드
-        download_captions(youtube, video_id)
+except requests.exceptions.HTTPError as e:
+    print(f"HTTP 오류 발생: {e.response.status_code} - {e.response.text}")
+except requests.exceptions.ConnectionError as e:
+    print(f"네트워크 연결 오류 발생: {e}")
+except requests.exceptions.Timeout as e:
+    print(f"요청 시간 초과: {e}")
+except requests.exceptions.RequestException as e:
+    print(f"API 호출 중 알 수 없는 요청 오류 발생: {e}")
+except json.JSONDecodeError:
+    print("Supadata API 응답을 JSON으로 디코딩하는 데 실패했습니다. 응답이 JSON 형식이 아닐 수 있습니다.")
+    print("API 응답 내용:", response.text[:500] if 'response' in locals() else "응답 없음")
+except Exception as e:
+    print(f"예상치 못한 오류 발생: {e}")

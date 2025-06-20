@@ -20,3 +20,5 @@ package-lock.json
 **/.env
 
 **/client_secret.json
+**/app.sh
+
