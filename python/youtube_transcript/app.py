@@ -1,7 +1,7 @@
 import requests
 import json
 import os
-import datetime # 시간 포맷팅을 위해 datetime 모듈 추가
+import datetime 
 
 def get_video_id(video_url):
     """
@@ -11,9 +11,8 @@ def get_video_id(video_url):
     if 'v=' in video_url:
         video_id = video_url.split("v=")[1][:11]
     else:
-        # 실제 사용 시에는 유효한 YouTube URL을 사용해야 합니다.
         print("경고: 유효한 YouTube 비디오 URL 형식이 아닙니다. 기본 ID를 사용합니다.")
-        video_id = "Ks-_Mh1QhMc" # 예시 ID 사용
+        video_id = "Ks-_Mh1QhMc" 
     return video_id
 
 def format_time(ms):
@@ -25,9 +24,8 @@ def format_time(ms):
     seconds = total_seconds % 60
     return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
 
-# 여기서는 직접 비디오 ID를 지정하여 Supadata API 호출에 사용합니다.
-# 실제 사용할 비디오 ID를 여기에 입력하세요.
-video_id = 'Ks-_Mh1QhMc'
+url = 'https://www.youtube.com/watch?v=JdwWgw4fq7I'
+video_id = get_video_id(url)
 
 print(f"- Youtube Video ID : {video_id}")
 
@@ -39,7 +37,7 @@ headers = {
 
 try:
     response = requests.get(supadata_api_url, headers=headers)
-    response.raise_for_status() # HTTP 오류(4xx, 5xx) 발생 시 예외 발생
+    response.raise_for_status() 
     supadata_data = response.json()
 
     available_langs = supadata_data.get('availableLangs', [])
@@ -54,7 +52,6 @@ try:
     if not transcript_content_from_api:
         print("Supadata API 응답에 자막 내용(content)이 없습니다.")
     else:
-        # --- SRT 형식 문자열 직접 생성 ---
         srt_formatted = ""
         for i, item in enumerate(transcript_content_from_api):
             start_time_ms = item.get('offset', 0)
@@ -70,7 +67,6 @@ try:
         print(srt_formatted[:150])
         print('-' * 50)
 
-        # --- TXT 형식 문자열 직접 생성 ---
         text_formatted = ""
         for item in transcript_content_from_api:
             text_formatted += item.get('text', '') + "\n"
