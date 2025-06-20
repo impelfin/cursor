@@ -19,9 +19,7 @@ def get_authenticated_service():
             flow = InstalledAppFlow.from_client_secrets_file(
                 'client_secret.json', SCOPES)
             
-            # --- 변경된 부분 시작 ---
-            # 웹 브라우저를 자동으로 열지 않도록 open_browser=False를 추가하고,
-            # 포트를 0으로 설정하여 사용 가능한 포트를 자동으로 찾게 합니다.
+
             auth_url, _ = flow.authorization_url(prompt='consent', include_granted_scopes='true')
             print("--- Google 인증을 진행해주세요 ---")
             print(f"아래 URL을 웹 브라우저에 복사하여 붙여넣으세요:\n{auth_url}")
