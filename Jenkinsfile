@@ -78,6 +78,29 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy') {
+            steps([$class: 'BapSshPromotionPublishPlugin']) {
+                sshPublisher(
+                    continueOnError: false,
+                    failOnError: true,
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: 'EC2 Master',
+                            verbose: true,
+                            transfers: [
+                                sshTransfer(
+                                    // sourceFiles: "build/libs/*.jar",
+                                    // removePrefix: "build/libs",
+                                    remoteDirectory: "/root",
+                                    execCommand: "sh /root/deploy_jenkins.sh"
+                                )    
+                            ]
+                        )
+                    ]
+                )
+            }
+        }
     }
 
     post {

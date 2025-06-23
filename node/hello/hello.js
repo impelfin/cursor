@@ -5,6 +5,6 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-app.listen(8000, function () {
- console.log('8000 Port : 서버 실행 중');
+app.listen(8888, function () {
+ console.log('8888 Port : 서버 실행 중');
 });
