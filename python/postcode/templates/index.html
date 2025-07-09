@@ -3,82 +3,208 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>엑셀 우편번호 자동 채우기</title>
+    <title>우편번호 검색기 (우체국 크롤링)</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        margin: 40px;
-        background-color: #f4f4f4;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f7f6;
         color: #333;
-        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
       }
       .container {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: inline-block;
-        text-align: left;
+        background-color: #ffffff;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+        box-sizing: border-box;
       }
       h1 {
-        color: #0056b3;
-        margin-bottom: 20px;
-      }
-      input[type="file"] {
-        margin-bottom: 20px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      input[type="submit"] {
-        background-color: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      input[type="submit"]:hover {
-        background-color: #0056b3;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        font-size: 1.8em;
+        font-weight: 600;
       }
       p {
+        margin-bottom: 20px;
+        line-height: 1.6;
+        color: #555;
+      }
+      form {
         margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+      }
+      input[type="file"] {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        width: calc(100% - 22px);
+        background-color: #fcfcfc;
+        cursor: pointer;
+      }
+      input[type="file"]::-webkit-file-upload-button {
+        visibility: hidden;
+      }
+      input[type="file"]::before {
+        content: "파일 선택";
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        padding: 8px 12px;
+        outline: none;
+        white-space: nowrap;
+        -webkit-user-select: none;
+        cursor: pointer;
+        font-weight: 500;
         font-size: 0.9em;
-        color: #666;
+        margin-right: 10px;
+      }
+      input[type="file"]:hover::before {
+        background: #0056b3;
+        border-color: #0056b3;
+      }
+      button {
+        background-color: #28a745;
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: auto;
+      }
+      button:hover {
+        background-color: #218838;
+      }
+      .message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: bold;
+        word-break: keep-all;
+        line-height: 1.5;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
       }
       .info {
-        color: #007bff;
-        font-weight: bold;
-        margin-bottom: 10px;
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
       }
-      .note {
-        font-size: 0.85em;
-        color: #888;
+      .download-link {
+        display: inline-block;
+        margin-top: 25px;
+        background-color: #6f42c1;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 1.1em;
+        transition: background-color 0.3s ease;
+      }
+      .download-link:hover {
+        background-color: #563d7c;
+      }
+      ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        text-align: left;
+        margin-top: 15px;
+        color: #555;
+      }
+      li {
+        margin-bottom: 8px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>엑셀 우편번호 자동 채우기</h1>
-      <p class="info">
-        ※ 중요: 'data' 폴더 안에 `postcode_data.csv` 파일을 넣어주세요.
+      <h1>엑셀 파일 우편번호 검색 (우체국 크롤링)</h1>
+      <p>
+        업로드된 엑셀 파일의 **4번째 열(D열)**에 있는 주소를 읽어,<br />
+        **우체국 웹사이트를 크롤링**하여 우편번호를 검색한 후 **3번째
+        열(C열)**에 우편번호를 채워줍니다.
+        <br /><br />
+        <strong style="color: #e74c3c"
+          >주의: 이 방식은 웹사이트의 정책이나 구조 변경에 취약할 수
+          있으며,</strong
+        ><br />
+        <strong style="color: #e74c3c"
+          >과도한 요청 시 IP 차단 등 문제가 발생할 수 있습니다.</strong
+        >
       </p>
 
-      <p>
-        'Data' 시트에서 4번째 열(주소)을 기반으로 3번째 열(우편번호)을
-        채워줍니다. (엑셀 파일의 첫 번째 행은 헤더로 간주하고 처리하지
-        않습니다.)
-      </p>
-      <p class="note">
-        * 우편번호 검색은 다운로드 받은 CSV 파일을 활용합니다. * 주소 매칭
-        정확도는 CSV 파일의 구성과 입력 주소의 형식에 따라 달라질 수 있습니다.
-      </p>
-      <form method="POST" enctype="multipart/form-data">
+      <form action="/" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx, .xls" />
-        <br />
-        <input type="submit" value="파일 업로드 및 처리" />
+        <button type="submit">우편번호 검색 시작</button>
       </form>
+
+      {% if message %}
+      <div
+        class="message {% if '오류' in message or 'Error' in message or '실패' in message %}error{% elif '완료' in message %}success{% else %}info{% endif %}"
+      >
+        <p>{{ message }}</p>
+        {% if '네트워크오류' in message or '크롤링오류' in message %}
+        <p style="margin-top: 10px">
+          <strong>해결 방법:</strong><br />
+          1. 인터넷 연결 상태를 확인해주세요.<br />
+          2. 잠시 후 다시 시도해보세요. (웹사이트 일시적 문제일 수 있습니다.)<br />
+          3. 웹사이트의 크롤링 방어(캡차, IP 차단 등)가 강화되었을 수 있습니다.
+          개발자에게 문의해주세요.
+        </p>
+        {% endif %}
+      </div>
+      {% endif %} {% if download_url %}
+      <a href="{{ download_url }}" class="download-link"
+        >처리된 엑셀 파일 다운로드</a
+      >
+      {% endif %}
+
+      <hr
+        style="
+          width: 80%;
+          border: 0;
+          height: 1px;
+          background: #eee;
+          margin: 30px auto;
+        "
+      />
+
+      <h2>사용 안내</h2>
+      <ul>
+        <li>엑셀 파일의 첫 번째 행은 제목(Header)으로 간주하고 건너뜁니다.</li>
+        <li>
+          주소 데이터는 엑셀 파일의 **D열 (4번째 열)**에 입력되어야 합니다.
+        </li>
+        <li>우편번호 결과는 **C열 (3번째 열)**에 채워집니다.</li>
+        <li>병합된 셀은 건너뛰고 처리되지 않습니다.</li>
+        <li>
+          크롤링 방식으로 인해 처리 시간이 다소 소요될 수 있으며, 간헐적으로
+          검색 실패가 발생할 수 있습니다.
+        </li>
+      </ul>
     </div>
   </body>
 </html>
