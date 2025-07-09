@@ -22,3 +22,5 @@ package-lock.json
 **/client_secret.json
 **/app.sh
 
+**/postcode_data_merged.csv
+

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>엑셀 우편번호 자동 채우기</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f4f4f4;
+        color: #333;
+        text-align: center;
+      }
+      .container {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        text-align: left;
+      }
+      h1 {
+        color: #0056b3;
+        margin-bottom: 20px;
+      }
+      input[type="file"] {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      input[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      input[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+      p {
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #666;
+      }
+      .info {
+        color: #007bff;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .note {
+        font-size: 0.85em;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>엑셀 우편번호 자동 채우기</h1>
+      <p class="info">
+        ※ 중요: 'data' 폴더 안에 `postcode_data.csv` 파일을 넣어주세요.
+      </p>
+
+      <p>
+        'Data' 시트에서 4번째 열(주소)을 기반으로 3번째 열(우편번호)을
+        채워줍니다. (엑셀 파일의 첫 번째 행은 헤더로 간주하고 처리하지
+        않습니다.)
+      </p>
+      <p class="note">
+        * 우편번호 검색은 다운로드 받은 CSV 파일을 활용합니다. * 주소 매칭
+        정확도는 CSV 파일의 구성과 입력 주소의 형식에 따라 달라질 수 있습니다.
+      </p>
+      <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx, .xls" />
+        <br />
+        <input type="submit" value="파일 업로드 및 처리" />
+      </form>
+    </div>
+  </body>
+</html>
