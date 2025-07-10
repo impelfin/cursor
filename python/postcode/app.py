@@ -275,7 +275,7 @@ def index():
                             break
 
                     if is_postcode_merged or is_found_address_merged:
-                        print(f"경고: {postcode_target_cell.coordinate} 또는 {found_address_target_cell.coordinate} 셀이 병합된 셀의 일부입니다. 건너뜜니다.")
+                        print(f"경고: {postcode_target_cell.coordinate} 또는 {found_address_target_cell.coordinate} 셀이 병합된 셀의 일부입니다. 건너뜁니다.")
                         continue
 
                     if address:
