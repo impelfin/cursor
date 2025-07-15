@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 브라우저 클라이언트</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #messages { border: 1px solid #ccc; padding: 10px; min-height: 200px; max-height: 400px; overflow-y: auto; margin-bottom: 10px; }
+        input[type="text"] { width: 300px; padding: 8px; }
+        button { padding: 8px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket 채팅 클라이언트</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="메시지를 입력하세요...">
+    <button onclick="sendMessage()">보내기</button>
+    <p><small>개발자 도구(F12)의 콘솔에서도 메시지를 확인할 수 있습니다.</small></p>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const ws = new WebSocket('ws://localhost:8080'); // 서버 주소
+
+        ws.onopen = function() {
+            logMessage('서버에 연결되었습니다.');
+        };
+
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.senderId && data.message) {
+                    // 발신자 ID를 포함하여 메시지 출력
+                    logMessage(`[발신자 ID: ${data.senderId}] ${data.message}`);
+                } else {
+                    // JSON 형식이 아닌 메시지 처리
+                    logMessage(`서버로부터 메시지 수신: ${event.data}`);
+                }
+            } catch (e) {
+                // JSON 파싱 실패 시 일반 텍스트로 처리 (예: 서버가 보낸 프라이빗 메시지 등)
+                logMessage(`서버로부터 원시 메시지 수신 (파싱 오류): ${event.data}`);
+            }
+        };
+
+        ws.onclose = function() {
+            logMessage('서버와의 연결이 해제되었습니다.');
+        };
+
+        ws.onerror = function(error) {
+            logMessage(`WebSocket 오류 발생: ${error.message}`, 'error');
+        };
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (message.trim() === '') {
+                return;
+            }
+            logMessage(`서버로 메시지 전송: ${message}`);
+            ws.send(message);
+            messageInput.value = ''; // 입력 필드 초기화
+        }
+
+        function logMessage(message, type = 'info') {
+            const p = document.createElement('p');
+            p.textContent = message;
+            if (type === 'error') {
+                p.style.color = 'red';
+            }
+            messagesDiv.appendChild(p);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // 스크롤을 항상 아래로
+            console.log(message); // 콘솔에도 기록
+        }
+
+        // Enter 키로 메시지 전송
+        messageInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
