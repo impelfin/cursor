@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dify 챗봇 (Express.js)</title>
+    <style>
+        /* 기존 스타일 유지 */
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f4f4f4; 
+            color: #333; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .chat-container { 
+            width: 100%;
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            height: 80vh; 
+        }
+        .messages { 
+            flex-grow: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            border-bottom: 1px solid #eee; 
+            display: flex;
+            flex-direction: column;
+        }
+        .message-row { 
+            margin-bottom: 15px; 
+            display: flex; 
+        }
+        .message-row.user { 
+            justify-content: flex-end; 
+        }
+        .message-row.ai { 
+            justify-content: flex-start; 
+        }
+        .message-bubble { 
+            padding: 10px 15px; 
+            border-radius: 18px; 
+            max-width: 80%; 
+            line-height: 1.5; 
+        }
+        .message-row.user .message-bubble { 
+            background-color: #007bff; 
+            color: white; 
+            border-bottom-right-radius: 2px; 
+        }
+        .message-row.ai .message-bubble { 
+            background-color: #e2e2e2; 
+            color: #333; 
+            border-bottom-left-radius: 2px; 
+        }
+        .input-area { 
+            display: flex; 
+            padding: 20px; 
+            border-top: 1px solid #eee; 
+            align-items: center;
+        }
+        .input-area input[type="text"] { 
+            flex-grow: 1; 
+            padding: 10px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            outline: none; 
+            font-size: 16px; 
+        }
+        .input-area button { 
+            margin-left: 10px; 
+            padding: 10px 20px; 
+            background-color: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background-color 0.2s ease; 
+        }
+        /* 마이크 버튼을 위한 스타일 추가 */
+        .input-area #micButton {
+            background-color: #ffc107; /* 노란색 */
+            color: #333;
+            margin-left: 10px;
+            padding: 10px 15px; /* 크기 조정 */
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+        }
+        .input-area #micButton:hover {
+            background-color: #e0a800; /* 어두운 노란색 */
+        }
+        /* 녹음 중일 때 버튼 스타일 */
+        .input-area #micButton.recording {
+            background-color: #dc3545; /* 빨간색 */
+            color: white;
+        }
+
+        .input-area button:hover { 
+            background-color: #218838; 
+        }
+        /* AI 타이핑 표시 (점 세 개 깜빡이는 애니메이션) */
+        .loading-dots span { 
+            display: inline-block; 
+            animation: blink 1.4s infinite; 
+            opacity: 0; 
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <div class="message-row ai">
+                <div class="message-bubble">안녕하세요! 무엇을 도와드릴까요?</div>
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="메시지를 입력하세요..." autofocus>
+            <button id="sendButton">보내기</button>
+            <button id="micButton">🎤 음성</button> </div>
+    </div>
+
+    <script>
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const micButton = document.getElementById('micButton'); // 마이크 버튼 참조
+        const messagesDiv = document.getElementById('messages');
+
+        // 메시지를 채팅창에 추가하거나 업데이트하는 함수 (기존과 동일)
+        function appendMessage(sender, text, isNewBubble = true) {
+            let messageBubbleElement;
+            if (isNewBubble) {
+                const messageRow = document.createElement('div');
+                messageRow.classList.add('message-row', sender);
+                messageBubbleElement = document.createElement('div');
+                messageBubbleElement.classList.add('message-bubble');
+                messageRow.appendChild(messageBubbleElement);
+                messagesDiv.appendChild(messageRow);
+            } else {
+                const lastAiBubble = messagesDiv.querySelector('.message-row.ai:last-child .message-bubble');
+                if (lastAiBubble) {
+                    messageBubbleElement = lastAiBubble;
+                } else {
+                    return appendMessage(sender, text, true);
+                }
+            }
+            messageBubbleElement.textContent = text;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; 
+        }
+
+        let aiTypingBubble = null;
+
+        // AI 타이핑 표시 (기존과 동일)
+        function showAITyping() {
+            if (!aiTypingBubble) {
+                aiTypingBubble = document.createElement('div');
+                aiTypingBubble.classList.add('message-row', 'ai');
+                const bubbleContent = document.createElement('div');
+                bubbleContent.classList.add('message-bubble');
+                bubbleContent.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+                aiTypingBubble.appendChild(bubbleContent);
+                messagesDiv.appendChild(aiTypingBubble);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+
+        // AI 타이핑 표시 제거 (기존과 동일)
+        function removeAITyping() {
+            if (aiTypingBubble) {
+                aiTypingBubble.remove();
+                aiTypingBubble = null;
+            }
+        }
+
+        // 메시지 전송 및 SSE 스트리밍 처리 함수 (기존과 동일)
+        async function sendMessage() {
+            const question = userInput.value.trim();
+            if (!question) return;
+
+            appendMessage('user', question);
+            userInput.value = '';
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            micButton.disabled = true; // 마이크 버튼도 비활성화
+            showAITyping();
+
+            let fullAiResponse = '';
+            let isFirstChunk = true;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+                
+                removeAITyping();
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const eventData = JSON.parse(line.substring(6));
+
+                                if (eventData.type === 'text') {
+                                    fullAiResponse += eventData.content;
+                                    appendMessage('ai', fullAiResponse, isFirstChunk);
+                                    isFirstChunk = false; 
+                                } else if (eventData.type === 'error') {
+                                    appendMessage('ai', `오류: ${eventData.content}`);
+                                } else if (eventData.type === 'end') {
+                                    reader.cancel();
+                                    break; 
+                                }
+                            } catch (e) {
+                                console.warn("SSE 라인 파싱 실패:", line, e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Fetch 오류:', error);
+                removeAITyping();
+                appendMessage('ai', '죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
+            } finally {
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                micButton.disabled = false; // 마이크 버튼 다시 활성화
+                userInput.focus();
+            }
+        }
+
+        // --- 음성 입력 관련 JavaScript 코드 ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null; // SpeechRecognition 인스턴스
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false; // 사용자가 말할 때마다 결과 반환
+            recognition.interimResults = false; // 중간 결과는 필요 없음 (최종 결과만)
+            recognition.lang = 'ko-KR'; // 한국어 설정
+
+            recognition.onstart = () => {
+                console.log('음성 인식을 시작합니다. 말씀해주세요.');
+                micButton.classList.add('recording'); // 녹음 중임을 시각적으로 표시
+                userInput.placeholder = '말씀하고 있습니다...';
+                userInput.disabled = true;
+                sendButton.disabled = true;
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('인식된 음성:', transcript);
+                userInput.value = transcript; // 인식된 텍스트를 입력 필드에 넣음
+                sendMessage(); // 텍스트로 변환된 내용을 바로 전송
+            };
+
+            recognition.onerror = (event) => {
+                console.error('음성 인식 오류:', event.error);
+                alert('음성 인식 오류가 발생했습니다: ' + event.error);
+                micButton.classList.remove('recording');
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.placeholder = '메시지를 입력하세요...';
+            };
+
+            recognition.onend = () => {
+                console.log('음성 인식을 종료합니다.');
+                micButton.classList.remove('recording');
+                if (!userInput.disabled) { // 전송 중이 아니라면 활성화
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    userInput.placeholder = '메시지를 입력하세요...';
+                }
+            };
+
+            micButton.addEventListener('click', () => {
+                if (recognition) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error("Speech Recognition start error:", e);
+                        alert("음성 인식을 시작할 수 없습니다. 이미 시작되었거나 브라우저 권한을 확인해주세요.");
+                    }
+                } else {
+                    alert('이 브라우저는 음성 입력을 지원하지 않습니다. Chrome 브라우저를 사용해 보세요.');
+                }
+            });
+
+        } else {
+            micButton.disabled = true;
+            micButton.textContent = '음성(미지원)';
+            alert('이 브라우저는 Web Speech API를 지원하지 않습니다.');
+        }
+
+        // 기존 이벤트 리스너 (기존과 동일)
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
+
