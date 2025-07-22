@@ -37,14 +37,10 @@ button:hover {
 .card-grid {
   margin-top: 40px;
   display: grid;
-  /* 한 줄에 4개 카드를 유지하되, 카드의 크기를 키우기 위해 fr 대신 px 사용 */
-  /* 각 카드의 너비를 120px로 설정합니다. 필요에 따라 이 값을 조절하세요. */
   grid-template-columns: repeat(4, 120px);
-  /* 카드 사이의 간격을 15px로 줄입니다. */
-  gap: 15px; 
-  /* 그리드 자체를 중앙에 배치하기 위해 justify-content를 추가합니다. */
-  justify-content: center; /* 카드들을 가로 중앙에 정렬 */
-  max-width: 860px; /* 이 값은 여전히 유효하지만, justify-content가 더 중요해집니다. */
+  gap: 15px;
+  justify-content: center;
+  max-width: 860px;
   margin: 40px auto;
   padding: 10px;
 }
@@ -52,12 +48,28 @@ button:hover {
 /* 개별 카드 컨테이너 */
 .card {
   position: relative;
-  /* grid-template-columns에 설정된 너비에 맞춰 100%로 설정 */
-  width: 100%; 
-  /* 너비 120px에 100:140 (가로:세로) 비율을 유지하려면 높이는 168px */
-  height: 168px; 
+  width: 100%;
+  height: 168px;
   cursor: pointer;
+  /* 카드 테두리 기본 스타일 (선택 안 된 상태) */
+  border: 3px solid transparent; /* 기본적으로 투명한 테두리 */
+  border-radius: 8px; /* 테두리도 둥글게 */
+  transition: border-color 0.2s ease-in-out; /* 테두리 색상 변경 애니메이션 */
 }
+
+/* 선택된 카드 테두리 (파란색) */
+.card .flipped .front { /* flipped 상태의 앞면만 선택된 것으로 간주 */
+  border-color: royalblue; /* 파란색 테두리 */
+  box-shadow: 0 0 10px rgba(65, 105, 225, 0.5); /* 그림자 효과 (선택 사항) */
+}
+
+/* 틀렸을 때 경고 테두리 (빨간색) */
+.card.wrong-match .flipped .front,
+.card.wrong-match .flipped .back { /* 앞면/뒷면 모두 빨간 테두리 */
+  border-color: crimson !important; /* !important로 다른 스타일보다 우선순위 높임 */
+  box-shadow: 0 0 15px rgba(220, 20, 60, 0.7); /* 더 강한 그림자 효과 */
+}
+
 
 .card div {
   position: absolute;
@@ -75,15 +87,18 @@ button:hover {
   width: 100%;
   height: 100%;
   display: block;
-  border: 2px solid #ccc;
+  /* border: 2px solid #ccc;  기존 이미지 테두리 삭제 또는 투명으로 변경 */
   border-radius: 8px;
-  object-fit: contain; /* 이미지가 컨테이너 안에 모두 보이도록 비율 유지 */
+  object-fit: contain;
   position: absolute;
   backface-visibility: hidden;
+  box-sizing: border-box; /* border가 width/height에 포함되도록 */
 }
 
 .card .front {
   transform: rotateY(90deg);
+  /* 맞았을 때 오픈 효과를 위해 추가: */
+  /* transition: transform 0.5s ease-out, box-shadow 0.5s ease-out; 이 부분은 JS에서 동적으로 설정 */
 }
 
 .card .back {
@@ -99,6 +114,14 @@ button:hover {
   transform: rotateY(90deg);
 }
 
+/* 매칭 성공 시 멋지게 오픈되는 효과 */
+.card .front[style*="matched"] { /* App.js에서 style={{matched:true}} 추가 시 이 셀렉터 사용 가능 */
+  transform: scale(1.05); /* 살짝 커지는 효과 */
+  box-shadow: 0 0 20px 5px rgba(0, 255, 0, 0.5); /* 초록색 빛나는 그림자 */
+  /* 또는 */
+  /* animation: pulseGreen 1s forwards; */ /* 아래에 keyframes 추가 */
+}
+
 /* 턴 수 표시 */
 p {
   font-size: 1.2em;
@@ -110,18 +133,18 @@ p {
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .card-grid {
-    grid-template-columns: repeat(3, 110px); /* 3열, 카드 너비 110px */
-    gap: 12px; /* 간격 살짝 줄임 */
+    grid-template-columns: repeat(3, 110px);
+    gap: 12px;
   }
-  .card { 
-    height: 154px; /* 너비 110px에 맞는 높이 */
+  .card {
+    height: 154px;
   }
 }
 
 @media (max-width: 480px) {
   .card-grid {
-    grid-template-columns: repeat(2, 100px); /* 2열, 카드 너비 100px */
-    gap: 10px; /* 간격 더 줄임 */
+    grid-template-columns: repeat(2, 100px);
+    gap: 10px;
   }
   .App h1 {
     font-size: 2em;
@@ -130,7 +153,17 @@ p {
     font-size: 1em;
     padding: 8px 15px;
   }
-  .card { 
-    height: 140px; /* 너비 100px에 맞는 높이 */
+  .card {
+    height: 140px;
   }
 }
+
+/* (선택 사항) 매칭 성공 시 좀 더 화려한 애니메이션 */
+/*
+@keyframes pulseGreen {
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
+  50% { transform: scale(1.08); box-shadow: 0 0 25px rgba(0, 255, 0, 0.7); }
+  100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+}
+*/
+

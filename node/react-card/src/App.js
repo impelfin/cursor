@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // useRef 추가
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 const cardImages = [
@@ -16,9 +16,10 @@ function App() {
   const [choiceOne, setChoiceOne] = useState(null);
   const [choiceTwo, setChoiceTwo] = useState(null);
   const [disabled, setDisabled] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0); // 경과 시간 상태 추가
-  const [gameStarted, setGameStarted] = useState(false); // 게임 시작 여부 상태 추가
-  const timerRef = useRef(null); // 타이머 ID를 저장할 ref 추가
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+  const timerRef = useRef(null);
+  const [isWrongMatch, setIsWrongMatch] = useState(false); // 틀렸을 때 빨간 테두리 표시용 상태 추가
 
   // 카드 섞기 함수
   const shuffleCards = () => {
@@ -30,8 +31,9 @@ function App() {
     setChoiceTwo(null);
     setCards(shuffledCards);
     setTurns(0);
-    setElapsedTime(0); // 시간 초기화
+    setElapsedTime(0);
     setDisabled(true); // 초기 노출 동안 카드 선택 비활성화
+    setIsWrongMatch(false); // 새 게임 시작 시 경고 상태 초기화
 
     // 기존 타이머가 있다면 클리어
     if (timerRef.current) {
@@ -39,11 +41,11 @@ function App() {
     }
 
     // 게임 시작 시 3초간 카드 보여주기
-    setGameStarted(false); // 게임 시작 전 상태로 설정하여 모든 카드 보이게 함
+    setGameStarted(false);
     setTimeout(() => {
-      setCards(prevCards => prevCards.map(card => ({ ...card, matched: false }))); //matched를 false로 설정하여 다시 뒤집히게 함
-      setDisabled(false); // 카드 선택 활성화
-      setGameStarted(true); // 게임 시작 상태로 변경
+      setCards(prevCards => prevCards.map(card => ({ ...card, matched: false })));
+      setDisabled(false);
+      setGameStarted(true);
       // 타이머 시작
       timerRef.current = setInterval(() => {
         setElapsedTime(prevTime => prevTime + 1);
@@ -53,9 +55,9 @@ function App() {
 
   // 카드 선택 함수
   const handleChoice = (card) => {
-    if (!gameStarted || disabled) return; // 게임이 시작되지 않았거나 비활성화 상태면 클릭 무시
-    if (card.matched) return; // 이미 맞춰진 카드는 클릭 무시
-    if (card === choiceOne) return; // 같은 카드를 두 번 클릭하는 것 방지
+    if (!gameStarted || disabled) return;
+    if (card.matched) return;
+    if (card.id === choiceOne?.id) return; // 이미 선택된 카드를 다시 선택하는 것 방지 (id로 비교)
 
     choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
   };
@@ -65,6 +67,7 @@ function App() {
     if (choiceOne && choiceTwo) {
       setDisabled(true); // 카드 선택 일시 비활성화
       if (choiceOne.src === choiceTwo.src) {
+        // 일치하는 경우
         setCards(prevCards => {
           return prevCards.map(card => {
             if (card.src === choiceOne.src) {
@@ -73,24 +76,31 @@ function App() {
               return card
             }
           })
-        })
-        resetTurn();
+        });
+        setIsWrongMatch(false); // 매칭 성공 시 경고 상태 해제
+        resetTurn(); // 바로 다음 턴 시작 (애니메이션은 CSS에서 처리)
       } else {
-        setTimeout(() => resetTurn(), 1000);
+        // 일치하지 않는 경우
+        setIsWrongMatch(true); // 틀렸을 때 경고 상태 활성화
+        setTimeout(() => {
+          setIsWrongMatch(false); // 1초 후 경고 상태 해제
+          resetTurn();
+        }, 1000); // 1초 후에 카드 뒤집기
       }
     }
   }, [choiceOne, choiceTwo]);
 
   // 모든 카드가 맞춰졌는지 확인 (게임 종료)
   useEffect(() => {
-    if (cards.length > 0 && cards.every(card => card.matched)) {
+    // 카드가 로드된 후 (cards.length > 0) 모든 카드가 matched 상태인지 확인
+    if (gameStarted && cards.length > 0 && cards.every(card => card.matched)) {
       if (timerRef.current) {
         clearInterval(timerRef.current); // 모든 카드가 맞춰지면 타이머 중지
       }
       // 선택 사항: 게임 종료 메시지 등 추가 가능
       // alert(`게임 완료! 턴 수: ${turns}, 경과 시간: ${elapsedTime}초`);
     }
-  }, [cards, turns, elapsedTime]);
+  }, [cards, gameStarted, turns, elapsedTime]);
 
 
   // 턴 리셋 및 다음 턴 시작
@@ -104,13 +114,12 @@ function App() {
   // 컴포넌트 마운트 시 카드 섞기 실행
   useEffect(() => {
     shuffleCards();
-    // 컴포넌트 언마운트 시 타이머 정리
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, []); // [] 의존성 배열로 마운트 시 한 번만 실행
+  }, []);
 
   // 경과 시간을 분:초 형식으로 변환
   const formatTime = (seconds) => {
@@ -126,23 +135,33 @@ function App() {
       <button onClick={shuffleCards}>새 게임 시작</button>
 
       <div className="card-grid">
-        {cards.map(card => (
-          <div
-            className="card"
-            key={card.id}
-            onClick={() => handleChoice(card)} // disabled 체크는 handleChoice 내부에서 처리
-          >
-            {/* gameStarted가 false일 때(초기 노출), 모든 카드를 flipped 상태로 만듭니다. */}
-            {/* card.matched는 이미 맞춰진 카드를 계속 flipped 상태로 유지합니다. */}
-            <div className={card.matched || !gameStarted ? "flipped" : ""}>
-              <img className="front" src={card.src} alt="card front" />
-              <img className="back" src="/img/cover.png" alt="card back" />
+        {cards.map(card => {
+          // 카드가 선택되었는지, 틀렸는지, 맞춰졌는지에 따라 클래스 추가
+          const isSelected = card.id === choiceOne?.id || card.id === choiceTwo?.id;
+          const showAsFlipped = card.matched || !gameStarted || isSelected;
+
+          return (
+            <div
+              className={`card ${isWrongMatch && isSelected ? 'wrong-match' : ''}`} // 틀렸을 때 경고 클래스 추가
+              key={card.id}
+              onClick={() => handleChoice(card)}
+            >
+              <div className={showAsFlipped ? "flipped" : ""}>
+                <img
+                  className="front"
+                  src={card.src}
+                  alt="card front"
+                  // 맞았을 때 멋지게 오픈되는 효과 추가
+                  style={{ transition: card.matched ? 'transform 0.5s ease-out, box-shadow 0.5s ease-out' : '' }}
+                />
+                <img className="back" src="/img/cover.png" alt="card back" />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <p>턴 수: {turns}</p>
-      <p>경과 시간: {formatTime(elapsedTime)}</p> {/* 경과 시간 표시 */}
+      <p>경과 시간: {formatTime(elapsedTime)}</p>
     </div>
   );
 }
