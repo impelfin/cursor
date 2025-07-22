@@ -1,0 +1,136 @@
+/* App.css */
+
+.App {
+  max-width: 860px;
+  margin: 60px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.5em;
+  color: #4a4a4a;
+  margin-bottom: 20px;
+}
+
+button {
+  background: none;
+  border: 2px solid #4a4a4a;
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #4a4a4a;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 30px;
+}
+
+button:hover {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+/* 카드 그리드 */
+.card-grid {
+  margin-top: 40px;
+  display: grid;
+  /* 한 줄에 4개 카드를 유지하되, 카드의 크기를 키우기 위해 fr 대신 px 사용 */
+  /* 각 카드의 너비를 120px로 설정합니다. 필요에 따라 이 값을 조절하세요. */
+  grid-template-columns: repeat(4, 120px);
+  /* 카드 사이의 간격을 15px로 줄입니다. */
+  gap: 15px; 
+  /* 그리드 자체를 중앙에 배치하기 위해 justify-content를 추가합니다. */
+  justify-content: center; /* 카드들을 가로 중앙에 정렬 */
+  max-width: 860px; /* 이 값은 여전히 유효하지만, justify-content가 더 중요해집니다. */
+  margin: 40px auto;
+  padding: 10px;
+}
+
+/* 개별 카드 컨테이너 */
+.card {
+  position: relative;
+  /* grid-template-columns에 설정된 너비에 맞춰 100%로 설정 */
+  width: 100%; 
+  /* 너비 120px에 100:140 (가로:세로) 비율을 유지하려면 높이는 168px */
+  height: 168px; 
+  cursor: pointer;
+}
+
+.card div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+/* 카드 앞면 및 뒷면 이미지 */
+.card .front,
+.card .back {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  object-fit: contain; /* 이미지가 컨테이너 안에 모두 보이도록 비율 유지 */
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+.card .front {
+  transform: rotateY(90deg);
+}
+
+.card .back {
+  /* 카드 뒷면 이미지는 기본 상태 */
+}
+
+/* 카드가 뒤집혔을 때의 상태 */
+.card div.flipped .front {
+  transform: rotateY(0deg);
+}
+
+.card div.flipped .back {
+  transform: rotateY(90deg);
+}
+
+/* 턴 수 표시 */
+p {
+  font-size: 1.2em;
+  margin-top: 30px;
+  color: #555;
+  font-weight: bold;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 110px); /* 3열, 카드 너비 110px */
+    gap: 12px; /* 간격 살짝 줄임 */
+  }
+  .card { 
+    height: 154px; /* 너비 110px에 맞는 높이 */
+  }
+}
+
+@media (max-width: 480px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 100px); /* 2열, 카드 너비 100px */
+    gap: 10px; /* 간격 더 줄임 */
+  }
+  .App h1 {
+    font-size: 2em;
+  }
+  button {
+    font-size: 1em;
+    padding: 8px 15px;
+  }
+  .card { 
+    height: 140px; /* 너비 100px에 맞는 높이 */
+  }
+}
