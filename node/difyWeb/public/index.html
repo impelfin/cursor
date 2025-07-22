@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dify 챗봇 (Express.js)</title>
+    <style>
+        /* 기본적인 웹 페이지 스타일링 */
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f4f4f4; 
+            color: #333; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .chat-container { 
+            width: 100%;
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            height: 80vh; 
+        }
+        .messages { 
+            flex-grow: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            border-bottom: 1px solid #eee; 
+            display: flex;
+            flex-direction: column;
+        }
+        .message-row { 
+            margin-bottom: 15px; 
+            display: flex; 
+        }
+        .message-row.user { 
+            justify-content: flex-end; 
+        }
+        .message-row.ai { 
+            justify-content: flex-start; 
+        }
+        .message-bubble { 
+            padding: 10px 15px; 
+            border-radius: 18px; 
+            max-width: 80%; 
+            line-height: 1.5; 
+        }
+        .message-row.user .message-bubble { 
+            background-color: #007bff; 
+            color: white; 
+            border-bottom-right-radius: 2px; 
+        }
+        .message-row.ai .message-bubble { 
+            background-color: #e2e2e2; 
+            color: #333; 
+            border-bottom-left-radius: 2px; 
+        }
+        .input-area { 
+            display: flex; 
+            padding: 20px; 
+            border-top: 1px solid #eee; 
+            align-items: center;
+        }
+        .input-area input[type="text"] { 
+            flex-grow: 1; 
+            padding: 10px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            outline: none; 
+            font-size: 16px; 
+        }
+        .input-area button { 
+            margin-left: 10px; 
+            padding: 10px 20px; 
+            background-color: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background-color 0.2s ease; 
+        }
+        .input-area button:hover { 
+            background-color: #218838; 
+        }
+        /* AI 타이핑 표시 (점 세 개 깜빡이는 애니메이션) */
+        .loading-dots span { 
+            display: inline-block; 
+            animation: blink 1.4s infinite; 
+            opacity: 0; 
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <div class="message-row ai">
+                <div class="message-bubble">안녕하세요! 무엇을 도와드릴까요?</div>
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="메시지를 입력하세요..." autofocus>
+            <button id="sendButton">보내기</button>
+        </div>
+    </div>
+
+    <script>
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const messagesDiv = document.getElementById('messages');
+
+        // 메시지를 채팅창에 추가하거나 업데이트하는 함수
+        function appendMessage(sender, text, isNewBubble = true) {
+            let messageBubbleElement;
+            if (isNewBubble) {
+                const messageRow = document.createElement('div');
+                messageRow.classList.add('message-row', sender);
+                messageBubbleElement = document.createElement('div');
+                messageBubbleElement.classList.add('message-bubble');
+                messageRow.appendChild(messageBubbleElement);
+                messagesDiv.appendChild(messageRow);
+            } else {
+                const lastAiBubble = messagesDiv.querySelector('.message-row.ai:last-child .message-bubble');
+                if (lastAiBubble) {
+                    messageBubbleElement = lastAiBubble;
+                } else {
+                    return appendMessage(sender, text, true); // Fallback: 새 버블 생성
+                }
+            }
+            messageBubbleElement.textContent = text;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; 
+        }
+
+        let aiTypingBubble = null;
+
+        // AI 타이핑 표시 (점 세 개)를 보여주는 함수
+        function showAITyping() {
+            if (!aiTypingBubble) {
+                aiTypingBubble = document.createElement('div');
+                aiTypingBubble.classList.add('message-row', 'ai');
+                const bubbleContent = document.createElement('div');
+                bubbleContent.classList.add('message-bubble');
+                bubbleContent.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+                aiTypingBubble.appendChild(bubbleContent);
+                messagesDiv.appendChild(aiTypingBubble);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+
+        // AI 타이핑 표시를 제거하는 함수
+        function removeAITyping() {
+            if (aiTypingBubble) {
+                aiTypingBubble.remove();
+                aiTypingBubble = null;
+            }
+        }
+
+        // 메시지 전송 및 SSE 스트리밍 처리 함수
+        async function sendMessage() {
+            const question = userInput.value.trim();
+            if (!question) return;
+
+            appendMessage('user', question); // 사용자 질문 표시
+            userInput.value = ''; // 입력 필드 초기화
+            userInput.disabled = true; // 입력 비활성화
+            sendButton.disabled = true; // 버튼 비활성화
+            showAITyping(); // 타이핑 애니메이션 표시
+
+            let fullAiResponse = ''; // AI의 전체 답변을 저장할 변수
+            let isFirstChunk = true; // AI 답변의 첫 청크인지 확인하는 플래그
+
+            try {
+                // `/chat` 엔드포인트로 질문을 POST 요청으로 전송 (SSE 응답 기대)
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+                
+                removeAITyping(); // 응답이 오기 시작하면 타이핑 표시 제거
+
+                // 응답 스트림을 읽기 위한 Reader 및 Decoder 생성
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break; // 스트림 끝이면 종료
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n'); // SSE 데이터는 줄바꿈으로 구분
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) { // `data: ` 접두사로 시작하는 라인만 처리
+                            try {
+                                const eventData = JSON.parse(line.substring(6)); // JSON 파싱
+
+                                if (eventData.type === 'text') {
+                                    fullAiResponse += eventData.content;
+                                    // 첫 청크일 경우 새로운 메시지 버블 생성, 이후에는 기존 버블 업데이트
+                                    appendMessage('ai', fullAiResponse, isFirstChunk);
+                                    isFirstChunk = false; 
+                                } else if (eventData.type === 'error') {
+                                    appendMessage('ai', `오류: ${eventData.content}`);
+                                } else if (eventData.type === 'end') {
+                                    reader.cancel(); // 스트림 읽기 중지
+                                    break; // 루프 종료
+                                }
+                            } catch (e) {
+                                console.warn("SSE 라인 파싱 실패:", line, e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Fetch 오류:', error);
+                removeAITyping();
+                appendMessage('ai', '죄송합니다. 메시지를 처리하는 중 오류가 발생했습니다.');
+            } finally {
+                // 모든 작업이 끝나면 입력 필드와 버튼 활성화
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        // 이벤트 리스너 설정: 버튼 클릭 또는 Enter 키 입력 시 메시지 전송
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
