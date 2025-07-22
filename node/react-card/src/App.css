@@ -7,6 +7,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   text-align: center;
+  position: relative; /* 팝업 오버레이의 기준점 */
 }
 
 h1 {
@@ -51,23 +52,22 @@ button:hover {
   width: 100%;
   height: 168px;
   cursor: pointer;
-  /* 카드 테두리 기본 스타일 (선택 안 된 상태) */
-  border: 3px solid transparent; /* 기본적으로 투명한 테두리 */
-  border-radius: 8px; /* 테두리도 둥글게 */
-  transition: border-color 0.2s ease-in-out; /* 테두리 색상 변경 애니메이션 */
+  border: 3px solid transparent;
+  border-radius: 8px;
+  transition: border-color 0.2s ease-in-out;
 }
 
 /* 선택된 카드 테두리 (파란색) */
-.card .flipped .front { /* flipped 상태의 앞면만 선택된 것으로 간주 */
-  border-color: royalblue; /* 파란색 테두리 */
-  box-shadow: 0 0 10px rgba(65, 105, 225, 0.5); /* 그림자 효과 (선택 사항) */
+.card .flipped .front {
+  border-color: royalblue;
+  box-shadow: 0 0 10px rgba(65, 105, 225, 0.5);
 }
 
 /* 틀렸을 때 경고 테두리 (빨간색) */
 .card.wrong-match .flipped .front,
-.card.wrong-match .flipped .back { /* 앞면/뒷면 모두 빨간 테두리 */
-  border-color: crimson !important; /* !important로 다른 스타일보다 우선순위 높임 */
-  box-shadow: 0 0 15px rgba(220, 20, 60, 0.7); /* 더 강한 그림자 효과 */
+.card.wrong-match .flipped .back {
+  border-color: crimson !important;
+  box-shadow: 0 0 15px rgba(220, 20, 60, 0.7);
 }
 
 
@@ -87,18 +87,15 @@ button:hover {
   width: 100%;
   height: 100%;
   display: block;
-  /* border: 2px solid #ccc;  기존 이미지 테두리 삭제 또는 투명으로 변경 */
   border-radius: 8px;
   object-fit: contain;
   position: absolute;
   backface-visibility: hidden;
-  box-sizing: border-box; /* border가 width/height에 포함되도록 */
+  box-sizing: border-box;
 }
 
 .card .front {
   transform: rotateY(90deg);
-  /* 맞았을 때 오픈 효과를 위해 추가: */
-  /* transition: transform 0.5s ease-out, box-shadow 0.5s ease-out; 이 부분은 JS에서 동적으로 설정 */
 }
 
 .card .back {
@@ -115,11 +112,9 @@ button:hover {
 }
 
 /* 매칭 성공 시 멋지게 오픈되는 효과 */
-.card .front[style*="matched"] { /* App.js에서 style={{matched:true}} 추가 시 이 셀렉터 사용 가능 */
-  transform: scale(1.05); /* 살짝 커지는 효과 */
-  box-shadow: 0 0 20px 5px rgba(0, 255, 0, 0.5); /* 초록색 빛나는 그림자 */
-  /* 또는 */
-  /* animation: pulseGreen 1s forwards; */ /* 아래에 keyframes 추가 */
+.card .front[style*="matched"] {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px 5px rgba(0, 255, 0, 0.5);
 }
 
 /* 턴 수 표시 */
@@ -158,12 +153,73 @@ p {
   }
 }
 
-/* (선택 사항) 매칭 성공 시 좀 더 화려한 애니메이션 */
-/*
-@keyframes pulseGreen {
-  0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
-  50% { transform: scale(1.08); box-shadow: 0 0 25px rgba(0, 255, 0, 0.7); }
-  100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+/* --- 게임 결과 팝업 스타일 --- */
+
+.popup-overlay {
+  position: fixed; /* 전체 화면을 덮음 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* 반투명 검정 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 다른 요소 위에 표시 */
+  animation: fadeIn 0.3s ease-out forwards; /* 팝업 나타나는 애니메이션 */
 }
-*/
+
+.popup-content {
+  background-color: #fff;
+  padding: 40px 50px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  transform: translateY(-20px); /* 살짝 위에서 내려오는 효과 */
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* 팝업 나타나는 애니메이션 */
+}
+
+.popup-content h2 {
+  font-size: 2.2em;
+  color: #28a745; /* 완료 메시지 색상 */
+  margin-bottom: 25px;
+}
+
+.popup-content p {
+  font-size: 1.4em;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.popup-content strong {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.popup-content button {
+  margin-top: 30px;
+  padding: 12px 30px;
+  font-size: 1.2em;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.popup-content button:hover {
+  background-color: #0056b3;
+}
+
+/* 팝업 애니메이션 정의 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
 

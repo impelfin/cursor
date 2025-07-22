@@ -19,7 +19,10 @@ function App() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const timerRef = useRef(null);
-  const [isWrongMatch, setIsWrongMatch] = useState(false); // 틀렸을 때 빨간 테두리 표시용 상태 추가
+  const [isWrongMatch, setIsWrongMatch] = useState(false);
+  const [showResultPopup, setShowResultPopup] = useState(false); // 결과 팝업 표시 여부
+  const [finalTurns, setFinalTurns] = useState(0); // 최종 턴 수 저장
+  const [finalTime, setFinalTime] = useState(0); // 최종 시간 저장
 
   // 카드 섞기 함수
   const shuffleCards = () => {
@@ -32,8 +35,9 @@ function App() {
     setCards(shuffledCards);
     setTurns(0);
     setElapsedTime(0);
-    setDisabled(true); // 초기 노출 동안 카드 선택 비활성화
-    setIsWrongMatch(false); // 새 게임 시작 시 경고 상태 초기화
+    setDisabled(true);
+    setIsWrongMatch(false);
+    setShowResultPopup(false); // 새 게임 시작 시 팝업 닫기
 
     // 기존 타이머가 있다면 클리어
     if (timerRef.current) {
@@ -57,7 +61,7 @@ function App() {
   const handleChoice = (card) => {
     if (!gameStarted || disabled) return;
     if (card.matched) return;
-    if (card.id === choiceOne?.id) return; // 이미 선택된 카드를 다시 선택하는 것 방지 (id로 비교)
+    if (card.id === choiceOne?.id) return;
 
     choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
   };
@@ -65,7 +69,7 @@ function App() {
   // 두 카드 비교 로직
   useEffect(() => {
     if (choiceOne && choiceTwo) {
-      setDisabled(true); // 카드 선택 일시 비활성화
+      setDisabled(true);
       if (choiceOne.src === choiceTwo.src) {
         // 일치하는 경우
         setCards(prevCards => {
@@ -77,28 +81,30 @@ function App() {
             }
           })
         });
-        setIsWrongMatch(false); // 매칭 성공 시 경고 상태 해제
-        resetTurn(); // 바로 다음 턴 시작 (애니메이션은 CSS에서 처리)
+        setIsWrongMatch(false);
+        resetTurn();
       } else {
         // 일치하지 않는 경우
-        setIsWrongMatch(true); // 틀렸을 때 경고 상태 활성화
+        setIsWrongMatch(true);
         setTimeout(() => {
-          setIsWrongMatch(false); // 1초 후 경고 상태 해제
+          setIsWrongMatch(false);
           resetTurn();
-        }, 1000); // 1초 후에 카드 뒤집기
+        }, 1000);
       }
     }
   }, [choiceOne, choiceTwo]);
 
   // 모든 카드가 맞춰졌는지 확인 (게임 종료)
   useEffect(() => {
-    // 카드가 로드된 후 (cards.length > 0) 모든 카드가 matched 상태인지 확인
     if (gameStarted && cards.length > 0 && cards.every(card => card.matched)) {
       if (timerRef.current) {
         clearInterval(timerRef.current); // 모든 카드가 맞춰지면 타이머 중지
+        timerRef.current = null; // 타이머 참조 초기화
       }
-      // 선택 사항: 게임 종료 메시지 등 추가 가능
-      // alert(`게임 완료! 턴 수: ${turns}, 경과 시간: ${elapsedTime}초`);
+      setFinalTurns(turns); // 최종 턴 수 저장
+      setFinalTime(elapsedTime); // 최종 시간 저장
+      setShowResultPopup(true); // 결과 팝업 표시
+      setGameStarted(false); // 게임 상태 종료로 변경 (선택 불가)
     }
   }, [cards, gameStarted, turns, elapsedTime]);
 
@@ -108,7 +114,7 @@ function App() {
     setChoiceOne(null);
     setChoiceTwo(null);
     setTurns(prevTurns => prevTurns + 1);
-    setDisabled(false); // 카드 선택 재활성화
+    setDisabled(false);
   };
 
   // 컴포넌트 마운트 시 카드 섞기 실행
@@ -128,7 +134,6 @@ function App() {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-
   return (
     <div className="App">
       <h1>카드 뒤집기 게임</h1>
@@ -136,13 +141,12 @@ function App() {
 
       <div className="card-grid">
         {cards.map(card => {
-          // 카드가 선택되었는지, 틀렸는지, 맞춰졌는지에 따라 클래스 추가
           const isSelected = card.id === choiceOne?.id || card.id === choiceTwo?.id;
           const showAsFlipped = card.matched || !gameStarted || isSelected;
 
           return (
             <div
-              className={`card ${isWrongMatch && isSelected ? 'wrong-match' : ''}`} // 틀렸을 때 경고 클래스 추가
+              className={`card ${isWrongMatch && isSelected ? 'wrong-match' : ''}`}
               key={card.id}
               onClick={() => handleChoice(card)}
             >
@@ -162,6 +166,18 @@ function App() {
       </div>
       <p>턴 수: {turns}</p>
       <p>경과 시간: {formatTime(elapsedTime)}</p>
+
+      {/* 게임 결과 팝업 */}
+      {showResultPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h2>게임 완료!</h2>
+            <p>최종 턴 수: <strong>{finalTurns}</strong></p>
+            <p>경과 시간: <strong>{formatTime(finalTime)}</strong></p>
+            <button onClick={shuffleCards}>다시 하기</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
