@@ -1,8 +1,12 @@
 import requests
 import json
 from pprint import pprint
+import os 
 
-API_KEY = "2b108mZTWiYNLBiYYJothFhO"   # Your API key here
+API_KEY = os.getenv("PLANTNET_API_KEY") 
+if not API_KEY:
+    raise ValueError("PLANTNET_API_KEY 환경 변수가 설정되지 않았습니다.")
+
 PROJECT = "all"; # You can choose a more specific flora, see: /docs/newfloras
 api_endpoint = f"https://my-api.plantnet.org/v2/identify/{PROJECT}?api-key={API_KEY}"
 
@@ -16,8 +20,8 @@ data = { 'organs': ['flower'] }
 # data = { 'organs': ['flower', 'leaf'] }
 
 files = [
-  ('images', (image_path_1, image_data_1)),
-#   ('images', (image_path_2, image_data_2))
+    ('images', (image_path_1, image_data_1)),
+#     ('images', (image_path_2, image_data_2))
 ]
 
 req = requests.Request('POST', url=api_endpoint, files=files, data=data)
@@ -29,5 +33,3 @@ json_result = json.loads(response.text)
 
 pprint(response.status_code)
 pprint(json_result)
-
-
