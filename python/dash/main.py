@@ -56,7 +56,7 @@ def update_graph(option_slctd):
     print(option_slctd)
     print(type(option_slctd))
 
-    container = "The year chosen by the user is: {}".format(option_slctd)
+    container = "The year chosen by the user is : {}".format(option_slctd)
 
     dff = df.copy()
     dff = df[dff['Year'] == option_slctd]
